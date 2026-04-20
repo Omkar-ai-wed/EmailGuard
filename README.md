@@ -5,7 +5,7 @@
   <img src="https://img.shields.io/badge/FastAPI-0.111-009688?style=flat-square&logo=fastapi" alt="FastAPI"/>
   <img src="https://img.shields.io/badge/scikit--learn-1.4-f7931e?style=flat-square&logo=scikitlearn" alt="scikit-learn"/>
   <img src="https://img.shields.io/badge/SQLite-Database-003B57?style=flat-square&logo=sqlite" alt="SQLite"/>
-  <img src="https://img.shields.io/badge/TailwindCSS-CDN-38bdf8?style=flat-square&logo=tailwindcss" alt="Tailwind"/>
+  <img src="https://img.shields.io/badge/Deployed-Render-46E3B7?style=flat-square&logo=render" alt="Render"/>
   <img src="https://img.shields.io/badge/License-MIT-yellow?style=flat-square" alt="MIT"/>
 </p>
 
@@ -13,20 +13,25 @@
 
 ---
 
-## 🌐 Live Demo (GitHub Pages)
+## 🌐 Live Links
 
-**▶ [View Dashboard](https://omkar-ai-wed.github.io/EmailGuard/)**
+| Service | URL |
+|---------|-----|
+| 🖥️ **Dashboard (GitHub Pages)** | [https://omkar-ai-wed.github.io/EmailGuard/](https://omkar-ai-wed.github.io/EmailGuard/) |
+| ⚙️ **Backend API (Render)** | [https://emailguard-api.onrender.com](https://emailguard-api.onrender.com) |
+| 📖 **Swagger / API Docs** | [https://emailguard-api.onrender.com/docs](https://emailguard-api.onrender.com/docs) |
+| ❤️ **Health Check** | [https://emailguard-api.onrender.com/health](https://emailguard-api.onrender.com/health) |
 
-> The dashboard runs in **demo mode** with realistic sample data when the backend is offline — no setup needed to view it!
+> **Note:** The free Render tier sleeps after 15 min of inactivity — first request may take ~50 seconds to wake up. The dashboard falls back to demo data automatically if the API is sleeping.
 
 ---
 
 ## 📸 Dashboard Pages
 
 | Page | Description |
-|---|---|
+|------|-------------|
 | 🏠 **Overview** | Live stats, email table, security alerts panel |
-| 🗄️ **Email Database** | Searchable paginated email records |
+| 🗄️ **Email Database** | Searchable & paginated email records |
 | 🔑 **Rules & Keywords** | Detection rules, spam keywords, domain blocklist |
 | 📊 **Model Performance** | Accuracy, confusion matrix, ROC curve, feature importance |
 | 🚨 **Security Alerts** | Real-time alerts with severity filtering |
@@ -38,6 +43,7 @@
 ```
 EmailGuard/
 ├── index.html                      # → Redirects to dashboard (GitHub Pages entry)
+├── render.yaml                     # Render deployment blueprint
 ├── README.md
 ├── .gitignore
 │
@@ -56,19 +62,20 @@ EmailGuard/
     ├── config.py                   # Settings (JWT, DB URL)
     ├── database.py                 # SQLAlchemy engine
     ├── requirements.txt            # pip dependencies
+    ├── .python-version             # Python 3.11.9 (for Render)
     ├── .env.example                # Copy → .env
     ├── models/                     # ORM models (User, Email, Alert…)
     ├── routers/                    # API routes
     ├── schemas/                    # Pydantic schemas
     ├── middleware/                 # Auth middleware
-    └── services/                   # Business logic + ML model
+    └── services/                  # Business logic + ML model
 ```
 
 ---
 
 ## 🚀 How to Run — Step by Step
 
-There are **3 ways** to run EmailGuard depending on what you need:
+There are **3 ways** to run EmailGuard:
 
 ---
 
@@ -84,7 +91,7 @@ There are **3 ways** to run EmailGuard depending on what you need:
 
 ### ▶️ Option 2 — One-Command Start (Recommended)
 
-> Starts **both** the API backend and the frontend server at once. Opens browser automatically.
+> Starts **both** the API backend and the frontend server at once.
 
 **Step 1 — Clone the repository**
 ```powershell
@@ -98,7 +105,7 @@ cd backend
 pip install -r requirements.txt
 ```
 
-**Step 3 — Start everything with one command**
+**Step 3 — Start everything**
 ```powershell
 python start_all.py
 ```
@@ -113,59 +120,34 @@ This automatically:
 
 ### ▶️ Option 3 — Manual Start (Two Terminals)
 
-> Best for development — run backend and frontend in separate terminals.
-
 **Terminal 1 — Backend API**
-
 ```powershell
-# Navigate to backend folder
-cd d:\play\Email\backend
-
-# Install dependencies (first time only)
+cd backend
 pip install -r requirements.txt
-
-# Copy environment file (first time only)
 copy .env.example .env
-
-# Seed the database with demo data (first time only)
 python seed_data.py
-
-# Start the FastAPI backend
 python run.py
 ```
 
-The API is now live at:
-- 🔗 API Base: `http://localhost:8000`
-- 📖 Swagger Docs: `http://localhost:8000/docs`
-- 📋 ReDoc: `http://localhost:8000/redoc`
-- ❤️ Health Check: `http://localhost:8000/health`
-
+API is live at:
+- 🔗 `http://localhost:8000`
+- 📖 Swagger: `http://localhost:8000/docs`
+- ❤️ Health: `http://localhost:8000/health`
 
 **Terminal 2 — Frontend Server**
-
 ```powershell
-# Navigate to frontend folder
-cd d:\play\Email\Dashboard_UI
-
-# Start built-in Python HTTP server
+cd Dashboard_UI
 python -m http.server 3000
 ```
 
-The dashboard is now live at:
-- 🌐 Dashboard: `http://localhost:3000/Overview_Dashboard.html`
-
-
-**Then open your browser to:**
-```
-http://localhost:3000/Overview_Dashboard.html
-```
+Dashboard: `http://localhost:3000/Overview_Dashboard.html`
 
 ---
 
 ## 🔑 Default Login Credentials
 
 | Role | Username | Password | Access Level |
-|---|---|---|---|
+|------|----------|----------|--------------|
 | Admin | `admin` | `admin123` | Full access |
 | Analyst | `analyst` | `analyst123` | Classify & view |
 | Viewer | `viewer` | `viewer123` | Read-only |
@@ -177,7 +159,7 @@ http://localhost:3000/Overview_Dashboard.html
 ## 📡 API Endpoints Reference
 
 | Method | Endpoint | Description |
-|---|---|---|
+|--------|----------|-------------|
 | `POST` | `/api/v1/auth/register` | Create new user account |
 | `POST` | `/api/v1/auth/login` | Get JWT access token |
 | `GET` | `/api/v1/analytics/overview` | Overall dashboard stats |
@@ -192,12 +174,14 @@ http://localhost:3000/Overview_Dashboard.html
 | `GET` | `/api/v1/reputation/` | Sender reputation records |
 | `GET` | `/docs` | Interactive Swagger UI |
 
+Base URL (production): `https://emailguard-api.onrender.com`
+
 ---
 
 ## 🧠 ML Model Details
 
 | Property | Value |
-|---|---|
+|----------|-------|
 | Algorithm | Multinomial Naive Bayes (scikit-learn) |
 | Feature Extraction | TF-IDF (subject + body) |
 | Additional Features | Sender reputation, URL density, attachment flags, header anomaly |
@@ -207,44 +191,39 @@ http://localhost:3000/Overview_Dashboard.html
 | Recall | **98.1%** |
 | F1-Score | **97.4%** |
 | AUC-ROC | **0.991** |
-| Training Samples | 50,000 emails |
 
 ---
 
-## 🌐 Deploy to GitHub Pages
+## ☁️ Deployment
 
-Enable the live demo in 2 minutes:
+### Backend — Render (Live)
 
-**Step 1 — Push to GitHub**
+The backend is deployed on Render via `render.yaml` (Blueprint). It auto-deploys on every push to `main`.
+
+**To redeploy manually:**
 ```powershell
-cd d:\play\Email
-git init
 git add .
-git commit -m "Initial commit: EmailGuard dashboard"
-git branch -M main
-git remote add origin https://github.com/Omkar-ai-wed/EmailGuard.git
-git push -u origin main
-```
-
-If your repository is already initialized and you only need to push Render deployment updates:
-```bash
-git add render.yaml backend/run.py Dashboard_UI/
-git commit -m "chore: add Render deployment config"
+git commit -m "your message"
 git push
 ```
+Render will detect the push and trigger a new build automatically.
 
-**Step 2 — Enable GitHub Pages**
-1. Go to your repo: `https://github.com/Omkar-ai-wed/EmailGuard`
-2. Click **Settings** → **Pages** (left sidebar)
-3. Under **Source** → select **Deploy from a branch**
-4. Branch: **main** | Folder: **/ (root)**
-5. Click **Save**
-6. Wait ~1 minute → your site is live! 🎉
+**Environment variables set on Render:**
 
-**Your live URL:**
-```
-https://omkar-ai-wed.github.io/EmailGuard/
-```
+| Variable | Value |
+|----------|-------|
+| `PYTHON_VERSION` | `3.11.9` |
+| `DEBUG` | `false` |
+| `DATABASE_URL` | `sqlite:///./emailguard.db` |
+| `SECRET_KEY` | *(auto-generated by Render)* |
+
+### Frontend — GitHub Pages
+
+1. Go to your repo → **Settings → Pages**
+2. Source: **Deploy from a branch** → Branch: `main` | Folder: `/ (root)`
+3. Click **Save** → live in ~1 minute
+
+**Live URL:** `https://omkar-ai-wed.github.io/EmailGuard/`
 
 ---
 
@@ -262,7 +241,6 @@ python -m uvicorn main:app --port 8000 --reload
 
 **❌ Port already in use**
 ```powershell
-# Kill process on port 8000
 netstat -ano | findstr :8000
 taskkill /PID <PID_NUMBER> /F
 ```
@@ -275,11 +253,14 @@ python seed_data.py
 python run.py
 ```
 
-**❌ Git push rejected (remote already has commits)**
-```powershell
-git pull origin main --allow-unrelated-histories
-git push origin main
+**❌ Render build fails (numpy/scikit-learn error)**
+
+Ensure `requirements.txt` uses flexible pins:
 ```
+scikit-learn>=1.4.2
+numpy>=1.26.4
+```
+And `backend/.python-version` contains `3.11.9`.
 
 ---
 
