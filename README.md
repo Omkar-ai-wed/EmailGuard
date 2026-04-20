@@ -232,6 +232,7 @@ git add render.yaml backend/run.py Dashboard_UI/
 git commit -m "chore: add Render deployment config"
 git push
 ```
+This snippet (image2) shows staging `render.yaml`, `backend/run.py`, and `Dashboard_UI/`, committing with `chore: add Render deployment config`, then pushing the commit to GitHub.
 
 **Step 2 — Enable GitHub Pages**
 1. Go to your repo: `https://github.com/Omkar-ai-wed/EmailGuard`
