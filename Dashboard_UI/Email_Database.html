@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Email Database - EmailGuard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-tertiary": "#ffffff",
+                        "surface-dim": "#d2d9f4",
+                        "secondary": "#4b5c92",
+                        "inverse-surface": "#283044",
+                        "on-surface": "#131b2e",
+                        "error-container": "#ffdad6",
+                        "secondary-container": "#b1c2ff",
+                        "primary": "#003fb1",
+                        "outline": "#737686",
+                        "on-primary-fixed-variant": "#003dab",
+                        "surface-variant": "#dae2fd",
+                        "error": "#ba1a1a",
+                        "on-error": "#ffffff",
+                        "surface-tint": "#1353d8",
+                        "secondary-fixed-dim": "#b5c4ff",
+                        "on-secondary": "#ffffff",
+                        "on-surface-variant": "#434654",
+                        "tertiary-fixed-dim": "#ffb59a",
+                        "surface-container-lowest": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "on-tertiary-fixed": "#380d00",
+                        "on-secondary-container": "#3d4e84",
+                        "inverse-on-surface": "#eef0ff",
+                        "surface-container-high": "#e2e7ff",
+                        "primary-fixed": "#dbe1ff",
+                        "on-secondary-fixed-variant": "#334479",
+                        "on-primary-fixed": "#00174d",
+                        "tertiary": "#852b00",
+                        "surface-container": "#eaedff",
+                        "outline-variant": "#c3c5d7",
+                        "inverse-primary": "#b5c4ff",
+                        "surface": "#faf8ff",
+                        "tertiary-fixed": "#ffdbcf",
+                        "on-tertiary-fixed-variant": "#802a00",
+                        "primary-container": "#1a56db",
+                        "on-secondary-fixed": "#01174b",
+                        "on-background": "#131b2e",
+                        "surface-container-highest": "#dae2fd",
+                        "surface-bright": "#faf8ff",
+                        "on-primary": "#ffffff",
+                        "on-primary-container": "#d4dcff",
+                        "secondary-fixed": "#dbe1ff",
+                        "background": "#faf8ff",
+                        "surface-container-low": "#f2f3ff",
+                        "on-tertiary-container": "#ffd4c5",
+                        "tertiary-container": "#ad3b00",
+                        "primary-fixed-dim": "#b5c4ff"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    fontFamily: {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #faf8ff; color: #131b2e; }
+        .bg-gradient-primary { background: linear-gradient(135deg, #003fb1 0%, #1a56db 100%); }
+    </style>
+</head>
+<body class="flex min-h-screen bg-background text-on-background">
+<!-- SideNavBar -->
+<nav class="fixed left-0 top-0 h-full w-72 bg-inverse-surface text-inverse-primary shadow-2xl shadow-[#131b2e]/10 flex flex-col py-8 z-50">
+<div class="px-6 mb-12">
+<h1 class="text-2xl font-bold text-white tracking-tight">EmailGuard</h1>
+<p class="text-xs text-secondary-fixed-dim tracking-[0.05em] uppercase mt-1">Precision Guardian</p>
+</div>
+<div class="flex-1 flex flex-col gap-2">
+<a class="flex items-center gap-4 px-6 py-3 text-surface-dim hover:text-white transition-colors hover:bg-white/5 duration-200 rounded-lg" href="Overview_Dashboard.html">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-3 text-[#b5c4ff] bg-white/10 rounded-r-full font-bold" href="Email_Database.html">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">database</span>
+<span>Email Database</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-3 text-surface-dim hover:text-white transition-colors hover:bg-white/5 duration-200 rounded-lg" href="Rules_Keywords.html">
+<span class="material-symbols-outlined">rule</span>
+<span class="font-medium">Rules &amp; Keywords</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-3 text-surface-dim hover:text-white transition-colors hover:bg-white/5 duration-200 rounded-lg" href="Model_Performance.html">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-medium">Model Performance</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-3 text-surface-dim hover:text-white transition-colors hover:bg-white/5 duration-200 rounded-lg" href="Security_Alerts.html">
+<span class="material-symbols-outlined">shield</span>
+<span class="font-medium">Security Alerts</span>
+</a>
+</div>
+<div class="px-6 mt-auto">
+<div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl">
+<img alt="Analyst Avatar" class="w-10 h-10 rounded-full border border-white/10" data-alt="professional portrait of a cybersecurity analyst looking confident in a well-lit office environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDeHEWgXNn87jnZMS8xcbSVVtc5PTCeUZXkF93pZQQOCKj-OzibTVatkttaoPskTwxJUWN0thA5eGfDnpLAixagtMb-Q10wnk5BxzFCUsLdqKTxSIa0yCFvpa_ZvMGGq50oMqyxh9fTocKDITWAjsjqecVH_MogVmPBrcwMoj_so__CWVUmI2SH3XxcWC-hjXJ9_S_nhkszDl_3o8NV8lb3S1GjYoGHYxJW1l2ogYhKpkkoNgYXpaUslYpyrYOwnsct4hMq4HjHbPk"/>
+<div>
+<p class="text-sm font-semibold text-white">Analyst J. Doe</p>
+<p class="text-xs text-secondary-fixed-dim">Tier 2 SecOps</p>
+</div>
+</div>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="ml-72 flex-1 flex flex-col min-h-screen">
+<!-- TopAppBar -->
+<header class="fixed top-0 right-0 left-72 h-20 bg-surface-container-low flex justify-between items-center px-12 z-40">
+<div class="flex items-center gap-4">
+<h2 class="font-['Inter'] font-semibold text-lg text-primary">Email Database</h2>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="pl-10 pr-4 py-2 bg-surface rounded-lg border-none text-sm w-64 focus:ring-2 focus:ring-primary/30 transition-all focus:bg-surface-container-lowest outline-none text-on-surface placeholder:text-outline-variant" placeholder="Global search..." type="text"/>
+</div>
+<div class="flex gap-2 text-primary">
+<button class="p-2 hover:bg-surface-container-high rounded-lg transition-transform duration-200 ease-in-out">
+<span class="material-symbols-outlined">filter_list</span>
+</button>
+<button class="p-2 hover:bg-surface-container-high rounded-lg transition-transform duration-200 ease-in-out">
+<span class="material-symbols-outlined">download</span>
+</button>
+<button class="p-2 hover:bg-surface-container-high rounded-lg transition-transform duration-200 ease-in-out">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Content Area -->
+<div class="pt-28 px-12 pb-12 flex-1 bg-background">
+<!-- SECTION A: EMAIL DATABASE -->
+<!-- Stats Bento -->
+<div class="grid grid-cols-4 gap-6 mb-8">
+<div class="bg-surface-container-low rounded-xl p-6 relative overflow-hidden group hover:bg-surface-container-high transition-colors">
+<p class="text-label-sm font-semibold tracking-wider text-on-surface-variant uppercase mb-2">Total Records</p>
+<p class="text-4xl font-bold text-on-background">24,847</p>
+<div class="absolute -right-4 -bottom-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-8xl text-primary">database</span>
+</div>
+</div>
+<div class="bg-surface-container-low rounded-xl p-6 border-l-4 border-primary">
+<p class="text-label-sm font-semibold tracking-wider text-on-surface-variant uppercase mb-2">Wanted Emails</p>
+<div class="flex items-baseline gap-2">
+<p class="text-3xl font-bold text-primary">14,821</p>
+<span class="text-sm font-medium text-primary bg-primary/10 px-2 py-0.5 rounded">+12%</span>
+</div>
+</div>
+<div class="bg-surface-container-low rounded-xl p-6 border-l-4 border-error">
+<p class="text-label-sm font-semibold tracking-wider text-on-surface-variant uppercase mb-2">Unwanted / Spam</p>
+<div class="flex items-baseline gap-2">
+<p class="text-3xl font-bold text-error">8,293</p>
+<span class="text-sm font-medium text-error bg-error/10 px-2 py-0.5 rounded">-4%</span>
+</div>
+</div>
+<div class="bg-surface-container-low rounded-xl p-6 border-l-4 border-tertiary">
+<p class="text-label-sm font-semibold tracking-wider text-on-surface-variant uppercase mb-2">Suspicious</p>
+<div class="flex items-baseline gap-2">
+<p class="text-3xl font-bold text-tertiary">1,733</p>
+<span class="material-symbols-outlined text-tertiary text-sm ml-auto">warning</span>
+</div>
+</div>
+</div>
+<!-- Filters & Actions -->
+<div class="flex flex-wrap gap-4 items-center mb-6 p-4 bg-surface-container-low rounded-xl">
+<select class="bg-surface text-on-surface text-sm rounded-lg border-none focus:ring-2 focus:ring-primary/30 py-2 pl-4 pr-10">
+<option>Category: All</option>
+<option>Wanted</option>
+<option>Spam</option>
+<option>Suspicious</option>
+<option>Phishing</option>
+</select>
+<select class="bg-surface text-on-surface text-sm rounded-lg border-none focus:ring-2 focus:ring-primary/30 py-2 pl-4 pr-10">
+<option>Date Range: Last 7 Days</option>
+<option>Last 24 Hours</option>
+<option>Last 30 Days</option>
+<option>Custom Range</option>
+</select>
+<select class="bg-surface text-on-surface text-sm rounded-lg border-none focus:ring-2 focus:ring-primary/30 py-2 pl-4 pr-10">
+<option>Risk Score: Any</option>
+<option>0-30 (Low)</option>
+<option>31-60 (Med)</option>
+<option>61-100 (High)</option>
+</select>
+<button class="ml-auto bg-gradient-primary text-on-primary px-6 py-2 rounded-lg text-sm font-semibold shadow-lg shadow-[#131b2e]/10 hover:opacity-90 transition-opacity flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">download</span>
+                    Export CSV
+                </button>
+</div>
+<!-- Table Container -->
+<div class="bg-surface-container-lowest rounded-xl shadow-2xl shadow-[#131b2e]/5 overflow-hidden mb-12">
+<table class="w-full text-left text-sm whitespace-nowrap">
+<thead class="bg-surface-container-low text-on-surface-variant text-label-sm uppercase tracking-wider font-semibold">
+<tr>
+<th class="px-6 py-4">ID</th>
+<th class="px-6 py-4">Sender</th>
+<th class="px-6 py-4 w-1/3">Subject</th>
+<th class="px-6 py-4">Date</th>
+<th class="px-6 py-4 text-center">Score</th>
+<th class="px-6 py-4">Category</th>
+<th class="px-6 py-4 text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container-high/50 text-on-surface">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="px-6 py-4 font-medium text-outline">#9041</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">AM</div>
+<span>noreply@amazon.com</span>
+</div>
+</td>
+<td class="px-6 py-4 truncate max-w-[200px] text-on-surface-variant">Your order has been shipped.</td>
+<td class="px-6 py-4 text-on-surface-variant text-xs">Oct 24, 10:23 AM</td>
+<td class="px-6 py-4 text-center">
+<span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-bold text-xs">12</span>
+</td>
+<td class="px-6 py-4">
+<span class="px-2.5 py-1 rounded-md text-xs font-semibold bg-primary/10 text-primary">Wanted</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-primary hover:text-primary-container p-1"><span class="material-symbols-outlined text-[20px]">visibility</span></button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-low transition-colors bg-error/5">
+<td class="px-6 py-4 font-medium text-outline">#9042</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded bg-error/10 flex items-center justify-center text-error font-bold text-xs">PR</div>
+<span class="text-error font-medium">winner@promo-scam.win</span>
+</div>
+</td>
+<td class="px-6 py-4 truncate max-w-[200px] text-on-surface-variant font-medium">YOU WON $10,000!!! CLAIM NOW</td>
+<td class="px-6 py-4 text-on-surface-variant text-xs">Oct 24, 09:41 AM</td>
+<td class="px-6 py-4 text-center">
+<span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-error text-on-error font-bold text-xs">94</span>
+</td>
+<td class="px-6 py-4">
+<span class="px-2.5 py-1 rounded-md text-xs font-semibold bg-error/10 text-error">Phishing</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-outline hover:text-error p-1"><span class="material-symbols-outlined text-[20px]">block</span></button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="px-6 py-4 font-medium text-outline">#9043</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-on-surface font-bold text-xs">UN</div>
+<span>newsletter@university.edu</span>
+</div>
+</td>
+<td class="px-6 py-4 truncate max-w-[200px] text-on-surface-variant">Weekly Campus Updates - Fall Semester</td>
+<td class="px-6 py-4 text-on-surface-variant text-xs">Oct 24, 08:15 AM</td>
+<td class="px-6 py-4 text-center">
+<span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-bold text-xs">05</span>
+</td>
+<td class="px-6 py-4">
+<span class="px-2.5 py-1 rounded-md text-xs font-semibold bg-primary/10 text-primary">Wanted</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-primary hover:text-primary-container p-1"><span class="material-symbols-outlined text-[20px]">visibility</span></button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container-low transition-colors bg-tertiary/5">
+<td class="px-6 py-4 font-medium text-outline">#9044</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded bg-tertiary/10 flex items-center justify-center text-tertiary font-bold text-xs">IN</div>
+<span>info@startup-verify.io</span>
+</div>
+</td>
+<td class="px-6 py-4 truncate max-w-[200px] text-on-surface-variant">Action Required: Verify Account</td>
+<td class="px-6 py-4 text-on-surface-variant text-xs">Oct 23, 11:20 PM</td>
+<td class="px-6 py-4 text-center">
+<span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-tertiary/20 text-tertiary font-bold text-xs">45</span>
+</td>
+<td class="px-6 py-4">
+<span class="px-2.5 py-1 rounded-md text-xs font-semibold bg-tertiary/10 text-tertiary">Suspicious</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-primary hover:text-primary-container p-1"><span class="material-symbols-outlined text-[20px]">visibility</span></button>
+<button class="text-tertiary hover:text-tertiary-container p-1"><span class="material-symbols-outlined text-[20px]">verified_user</span></button>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="bg-surface-container-low p-4 flex justify-between items-center border-t border-surface-container-high/50">
+<span class="text-sm text-on-surface-variant">Showing 1 to 4 of 24,847 records</span>
+<div class="flex gap-1">
+<button class="px-3 py-1 text-sm rounded bg-surface text-outline hover:bg-surface-container-highest">Prev</button>
+<button class="px-3 py-1 text-sm rounded bg-primary text-on-primary font-medium">1</button>
+<button class="px-3 py-1 text-sm rounded bg-surface text-on-surface hover:bg-surface-container-highest">2</button>
+<button class="px-3 py-1 text-sm rounded bg-surface text-on-surface hover:bg-surface-container-highest">3</button>
+<span class="px-2 py-1 text-outline">...</span>
+<button class="px-3 py-1 text-sm rounded bg-surface text-on-surface hover:bg-surface-container-highest">10</button>
+<button class="px-3 py-1 text-sm rounded bg-surface text-on-surface hover:bg-surface-container-highest">Next</button>
+</div>
+</div>
+</div>
+<!-- SECTION B: RULES & KEYWORDS -->
+<div class="grid grid-cols-3 gap-8">
+<!-- Detection Rules Panel -->
+<div class="col-span-2 bg-surface-container-lowest rounded-xl shadow-2xl shadow-[#131b2e]/5 p-6">
+<div class="flex justify-between items-center mb-6">
+<h3 class="text-lg font-bold text-on-background">Active Detection Rules</h3>
+<button class="text-sm font-medium text-primary hover:bg-surface-container-low px-3 py-1.5 rounded transition-colors">+ New Rule</button>
+</div>
+<div class="flex flex-col gap-4">
+<div class="p-4 bg-surface-container-low rounded-lg flex items-center justify-between group hover:bg-surface-container-high transition-colors">
+<div>
+<p class="text-sm font-mono text-outline mb-1">R-092</p>
+<p class="font-medium text-on-surface">Subject contains 'FREE' &gt; 3 times</p>
+<div class="flex items-center gap-2 mt-2">
+<span class="material-symbols-outlined text-[16px] text-tertiary">arrow_right_alt</span>
+<span class="text-xs font-semibold text-tertiary bg-tertiary/10 px-2 py-0.5 rounded">Mark Suspicious</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-10 h-5 bg-primary rounded-full relative cursor-pointer">
+<div class="absolute right-1 top-1 w-3 h-3 bg-white rounded-full"></div>
+</div>
+<button class="text-outline hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]">edit</span></button>
+</div>
+</div>
+<div class="p-4 bg-surface-container-low rounded-lg flex items-center justify-between group hover:bg-surface-container-high transition-colors">
+<div>
+<p class="text-sm font-mono text-outline mb-1">R-041</p>
+<p class="font-medium text-on-surface">Sender Domain in Global Blacklist</p>
+<div class="flex items-center gap-2 mt-2">
+<span class="material-symbols-outlined text-[16px] text-error">arrow_right_alt</span>
+<span class="text-xs font-semibold text-error bg-error/10 px-2 py-0.5 rounded">Mark Spam &amp; Block</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-10 h-5 bg-primary rounded-full relative cursor-pointer">
+<div class="absolute right-1 top-1 w-3 h-3 bg-white rounded-full"></div>
+</div>
+<button class="text-outline hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]">edit</span></button>
+</div>
+</div>
+</div>
+</div>
+<!-- Keyword Heatmap -->
+<div class="col-span-1 bg-surface-container-lowest rounded-xl shadow-2xl shadow-[#131b2e]/5 p-6">
+<h3 class="text-lg font-bold text-on-background mb-6">Top Spam Keywords</h3>
+<div class="flex flex-col gap-4">
+<div>
+<div class="flex justify-between text-sm mb-1">
+<span class="font-medium text-error">FREE</span>
+<span class="font-mono text-outline">2,847</span>
+</div>
+<div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+<div class="bg-error h-full w-[85%]"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-sm mb-1">
+<span class="font-medium text-error">WINNER</span>
+<span class="font-mono text-outline">1,923</span>
+</div>
+<div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+<div class="bg-error h-full w-[65%] opacity-90"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-sm mb-1">
+<span class="font-medium text-tertiary">URGENT</span>
+<span class="font-mono text-outline">942</span>
+</div>
+<div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+<div class="bg-tertiary h-full w-[40%] opacity-80"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between text-sm mb-1">
+<span class="font-medium text-tertiary">Crypto</span>
+<span class="font-mono text-outline">612</span>
+</div>
+<div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+<div class="bg-tertiary h-full w-[25%] opacity-60"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

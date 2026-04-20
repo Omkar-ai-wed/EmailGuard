@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Rules &amp; Keywords - EmailGuard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode:"class",
+    theme:{extend:{
+      colors:{
+        "outline":"#737686","outline-variant":"#c3c5d7","background":"#faf8ff",
+        "primary-container":"#1a56db","on-secondary":"#ffffff","surface-tint":"#1353d8",
+        "on-primary":"#ffffff","tertiary":"#852b00","primary-fixed":"#dbe1ff",
+        "on-tertiary":"#ffffff","primary-fixed-dim":"#b5c4ff","secondary-fixed-dim":"#b5c4ff",
+        "surface-container-highest":"#dae2fd","surface-dim":"#d2d9f4",
+        "surface-container-lowest":"#ffffff","surface-container":"#eaedff",
+        "surface-container-high":"#e2e7ff","on-surface":"#131b2e",
+        "on-surface-variant":"#434654","error":"#ba1a1a",
+        "surface-container-low":"#f2f3ff","error-container":"#ffdad6",
+        "primary":"#003fb1","inverse-primary":"#b5c4ff",
+        "inverse-on-surface":"#eef0ff","secondary-fixed":"#dbe1ff",
+        "on-error":"#ffffff","secondary-container":"#b1c2ff",
+        "secondary":"#4b5c92","surface-bright":"#faf8ff",
+        "on-background":"#131b2e","inverse-surface":"#283044","surface":"#faf8ff"
+      },
+      borderRadius:{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},
+      fontFamily:{"headline":["Inter"],"body":["Inter"],"label":["Inter"]}
+    }}
+  }
+</script>
+<style>
+  body { font-family:'Inter', sans-serif; background-color:#faf8ff; color:#131b2e; }
+  .material-symbols-outlined {
+    font-family:'Material Symbols Outlined'; font-weight:normal; font-style:normal;
+    font-size:24px; line-height:1; letter-spacing:normal; text-transform:none;
+    display:inline-block; white-space:nowrap; word-wrap:normal; direction:ltr;
+    -webkit-font-feature-settings:'liga'; -webkit-font-smoothing:antialiased;
+  }
+  .shadow-ambient { box-shadow:0 12px 40px rgba(19,27,46,0.06); }
+  .toggle-checked { background-color:#003fb1; }
+  .toggle-unchecked { background-color:#c3c5d7; }
+  .modal-backdrop { display:none; position:fixed; inset:0; background:rgba(19,27,46,0.4); z-index:100; align-items:center; justify-content:center; }
+  .modal-backdrop.open { display:flex; }
+</style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex">
+
+<!-- SideNavBar -->
+<nav class="fixed left-0 top-0 h-screen w-72 bg-[#283044] flex flex-col p-6 gap-2 shadow-2xl shadow-[#131b2e]/20 z-50">
+  <div class="flex items-center gap-4 mb-8 px-4">
+    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary-container flex items-center justify-center shrink-0">
+      <span class="material-symbols-outlined text-white" style="font-variation-settings:'FILL' 1;">security</span>
+    </div>
+    <div>
+      <h1 class="text-2xl font-bold text-white tracking-tight">EmailGuard</h1>
+      <p class="text-xs text-secondary-fixed-dim font-medium tracking-wide uppercase">Precision Security</p>
+    </div>
+  </div>
+  <div class="flex-1 space-y-1">
+    <a class="text-slate-400 hover:text-white px-4 py-3 flex items-center gap-3 hover:bg-white/10 group font-semibold rounded-lg" href="Overview_Dashboard.html">
+      <span class="material-symbols-outlined group-hover:text-white">dashboard</span>
+      <span class="group-hover:text-white">Overview</span>
+    </a>
+    <a class="text-slate-400 hover:text-white px-4 py-3 flex items-center gap-3 hover:bg-white/10 group font-semibold rounded-lg" href="Email_Database.html">
+      <span class="material-symbols-outlined group-hover:text-white">database</span>
+      <span class="group-hover:text-white">Email Database</span>
+    </a>
+    <a class="text-[#b5c4ff] bg-white/10 rounded-lg px-4 py-3 flex items-center gap-3 font-semibold" href="Rules_Keywords.html">
+      <span class="material-symbols-outlined text-white" style="font-variation-settings:'FILL' 1;">rule</span>
+      <span class="text-white">Rules &amp; Keywords</span>
+    </a>
+    <a class="text-slate-400 hover:text-white px-4 py-3 flex items-center gap-3 hover:bg-white/10 group font-semibold rounded-lg" href="Model_Performance.html">
+      <span class="material-symbols-outlined group-hover:text-white">analytics</span>
+      <span class="group-hover:text-white">Model Performance</span>
+    </a>
+    <a class="text-slate-400 hover:text-white px-4 py-3 flex items-center gap-3 hover:bg-white/10 group font-semibold rounded-lg" href="Security_Alerts.html">
+      <span class="material-symbols-outlined group-hover:text-white">shield</span>
+      <span class="group-hover:text-white">Security Alerts</span>
+    </a>
+  </div>
+  <div class="mt-auto">
+    <button class="w-full py-3 px-4 bg-gradient-to-r from-primary to-primary-container text-white rounded-xl font-bold text-sm tracking-wide shadow-lg hover:shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2">
+      <span class="material-symbols-outlined text-sm">report</span> Report Threat
+    </button>
+  </div>
+</nav>
+
+<!-- Main Content -->
+<div class="ml-72 flex-1 flex flex-col min-h-screen">
+  <header class="fixed top-0 right-0 left-72 h-20 bg-[#faf8ff]/80 backdrop-blur-xl flex justify-between items-center px-10 z-40" style="box-shadow:0 12px 40px rgba(19,27,46,0.04);">
+    <div class="flex items-center gap-4">
+      <h2 class="font-bold text-[#131b2e] text-2xl tracking-tight">Rules &amp; Keywords</h2>
+    </div>
+    <div class="flex items-center gap-4">
+      <button onclick="document.getElementById('new-rule-modal').classList.add('open')" class="px-5 py-2.5 bg-gradient-to-r from-primary to-primary-container text-white rounded-xl font-bold text-sm shadow-lg hover:shadow-xl transition-all active:scale-95 flex items-center gap-2">
+        <span class="material-symbols-outlined text-sm">add</span> New Rule
+      </button>
+    </div>
+  </header>
+
+  <main class="flex-1 pt-28 px-10 pb-16">
+    <div class="max-w-6xl mx-auto space-y-10">
+
+      <!-- Stats -->
+      <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-surface-container-lowest rounded-xl p-5 shadow-ambient border border-outline-variant/15 flex items-center gap-4">
+          <span class="material-symbols-outlined text-primary bg-primary/10 p-2 rounded-lg" style="font-variation-settings:'FILL' 1;">rule</span>
+          <div>
+            <div class="text-2xl font-extrabold text-on-background">12</div>
+            <div class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Active Rules</div>
+          </div>
+        </div>
+        <div class="bg-surface-container-lowest rounded-xl p-5 shadow-ambient border border-outline-variant/15 flex items-center gap-4">
+          <span class="material-symbols-outlined text-error bg-error/10 p-2 rounded-lg" style="font-variation-settings:'FILL' 1;">key</span>
+          <div>
+            <div class="text-2xl font-extrabold text-on-background">247</div>
+            <div class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Keywords</div>
+          </div>
+        </div>
+        <div class="bg-surface-container-lowest rounded-xl p-5 shadow-ambient border border-outline-variant/15 flex items-center gap-4">
+          <span class="material-symbols-outlined text-tertiary bg-tertiary/10 p-2 rounded-lg" style="font-variation-settings:'FILL' 1;">domain</span>
+          <div>
+            <div class="text-2xl font-extrabold text-on-background">89</div>
+            <div class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Blocked Domains</div>
+          </div>
+        </div>
+        <div class="bg-surface-container-lowest rounded-xl p-5 shadow-ambient border border-outline-variant/15 flex items-center gap-4">
+          <span class="material-symbols-outlined text-primary bg-primary/10 p-2 rounded-lg" style="font-variation-settings:'FILL' 1;">block</span>
+          <div>
+            <div class="text-2xl font-extrabold text-on-background">3,841</div>
+            <div class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Emails Caught</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Detection Rules -->
+      <section class="bg-surface-container-lowest rounded-2xl shadow-ambient border border-outline-variant/15 overflow-hidden">
+        <div class="p-6 pb-4 flex justify-between items-center bg-surface-container-lowest border-b border-outline-variant/10">
+          <h3 class="text-lg font-bold text-on-background">Detection Rules</h3>
+          <span class="text-xs font-semibold text-on-surface-variant bg-surface-container-low px-3 py-1 rounded-full">12 active</span>
+        </div>
+        <div class="divide-y divide-outline-variant/10">
+          <!-- Rule rows -->
+          <div class="p-5 flex items-center justify-between hover:bg-surface-container-low transition-colors group">
+            <div class="flex-1">
+              <div class="flex items-center gap-3 mb-1">
+                <span class="text-xs font-mono font-bold text-outline bg-surface-container-low px-2 py-0.5 rounded">R-092</span>
+                <span class="text-sm font-semibold text-on-background">Subject contains 'FREE' more than 3 times</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-tertiary text-sm">arrow_right_alt</span>
+                <span class="text-xs font-semibold text-tertiary bg-tertiary/10 px-2 py-0.5 rounded">Mark Suspicious</span>
+                <span class="text-xs text-on-surface-variant ml-2">· Triggered 842 times</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-4 ml-4">
+              <button onclick="this.dataset.on=this.dataset.on!=='true';this.style.background=this.dataset.on==='true'?'#003fb1':'#c3c5d7'" data-on="true" style="background:#003fb1" class="w-10 h-5 rounded-full relative transition-colors duration-200 cursor-pointer shrink-0">
+                <div class="absolute right-1 top-1 w-3 h-3 bg-white rounded-full transition-transform"></div>
+              </button>
+              <button class="text-outline hover:text-primary transition-colors opacity-0 group-hover:opacity-100"><span class="material-symbols-outlined text-xl">edit</span></button>
+              <button class="text-outline hover:text-error transition-colors opacity-0 group-hover:opacity-100"><span class="material-symbols-outlined text-xl">delete</span></button>
+            </div>
+          </div>
+          <div class="p-5 flex items-center justify-between hover:bg-surface-container-low transition-colors group">
+            <div class="flex-1">
+              <div class="flex items-center gap-3 mb-1">
+                <span class="text-xs font-mono font-bold text-outline bg-surface-container-low px-2 py-0.5 rounded">R-041</span>
+                <span class="text-sm font-semibold text-on-background">Sender Domain in Global Blacklist</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-error text-sm">arrow_right_alt</span>
+                <span class="text-xs font-semibold text-error bg-error/10 px-2 py-0.5 rounded">Mark Spam &amp; Block</span>
+                <span class="text-xs text-on-surface-variant ml-2">· Triggered 2,103 times</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-4 ml-4">
+              <button onclick="this.dataset.on=this.dataset.on!=='true';this.style.background=this.dataset.on==='true'?'#003fb1':'#c3c5d7'" data-on="true" style="background:#003fb1" class="w-10 h-5 rounded-full relative transition-colors duration-200 cursor-pointer shrink-0">
+                <div class="absolute right-1 top-1 w-3 h-3 bg-white rounded-full transition-transform"></div>
+              </button>
+              <button class="text-outline hover:text-primary transition-colors opacity-0 group-hover:opacity-100"><span class="material-symbols-outlined text-xl">edit</span></button>
+              <button class="text-outline hover:text-error transition-colors opacity-0 group-hover:opacity-100"><span class="material-symbols-outlined text-xl">delete</span></button>
+            </div>
+          </div>
+          <div class="p-5 flex items-center justify-between hover:bg-surface-container-low transition-colors group">
+            <div class="flex-1">
+              <div class="flex items-center gap-3 mb-1">
+                <span class="text-xs font-mono font-bold text-outline bg-surface-container-low px-2 py-0.5 rounded">R-078</span>
+                <span class="text-sm font-semibold text-on-background">Attachment type is .exe, .bat, or .vbs</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-error text-sm">arrow_right_alt</span>
+                <span class="text-xs font-semibold text-error bg-error/10 px-2 py-0.5 rounded">Quarantine &amp; Alert</span>
+                <span class="text-xs text-on-surface-variant ml-2">· Triggered 47 times</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-4 ml-4">
+              <button onclick="this.dataset.on=this.dataset.on!=='true';this.style.background=this.dataset.on==='true'?'#003fb1':'#c3c5d7'" data-on="true" style="background:#003fb1" class="w-10 h-5 rounded-full relative transition-colors duration-200 cursor-pointer shrink-0">
+                <div class="absolute right-1 top-1 w-3 h-3 bg-white rounded-full transition-transform"></div>
+              </button>
+              <button class="text-outline hover:text-primary transition-colors opacity-0 group-hover:opacity-100"><span class="material-symbols-outlined text-xl">edit</span></button>
+              <button class="text-outline hover:text-error transition-colors opacity-0 group-hover:opacity-100"><span class="material-symbols-outlined text-xl">delete</span></button>
+            </div>
+          </div>
+          <div class="p-5 flex items-center justify-between hover:bg-surface-container-low transition-colors group">
+            <div class="flex-1">
+              <div class="flex items-center gap-3 mb-1">
+                <span class="text-xs font-mono font-bold text-outline bg-surface-container-low px-2 py-0.5 rounded">R-103</span>
+                <span class="text-sm font-semibold text-on-background">More than 5 external links in body</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-tertiary text-sm">arrow_right_alt</span>
+                <span class="text-xs font-semibold text-tertiary bg-tertiary/10 px-2 py-0.5 rounded">Mark Suspicious</span>
+                <span class="text-xs text-on-surface-variant ml-2">· Triggered 391 times</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-4 ml-4">
+              <button onclick="this.dataset.on=this.dataset.on!=='true';this.style.background=this.dataset.on==='true'?'#003fb1':'#c3c5d7'" data-on="false" style="background:#c3c5d7" class="w-10 h-5 rounded-full relative transition-colors duration-200 cursor-pointer shrink-0">
+                <div class="absolute left-1 top-1 w-3 h-3 bg-white rounded-full transition-transform"></div>
+              </button>
+              <button class="text-outline hover:text-primary transition-colors opacity-0 group-hover:opacity-100"><span class="material-symbols-outlined text-xl">edit</span></button>
+              <button class="text-outline hover:text-error transition-colors opacity-0 group-hover:opacity-100"><span class="material-symbols-outlined text-xl">delete</span></button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Keywords + Blocklist Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Spam Keywords -->
+        <section class="bg-surface-container-lowest rounded-2xl shadow-ambient border border-outline-variant/15 p-6">
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="text-lg font-bold text-on-background">Top Spam Keywords</h3>
+            <button class="text-sm font-semibold text-primary hover:bg-surface-container-low px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1">
+              <span class="material-symbols-outlined text-sm">add</span> Add Keyword
+            </button>
+          </div>
+          <div class="space-y-4">
+            <div class="flex items-center gap-3 group">
+              <span class="w-20 text-sm font-bold text-error font-mono">FREE</span>
+              <div class="flex-1 bg-surface-container-high h-2 rounded-full overflow-hidden"><div class="bg-error h-full rounded-full" style="width:85%"></div></div>
+              <span class="text-xs font-mono text-on-surface-variant w-12 text-right">2,847</span>
+              <button class="text-outline hover:text-error opacity-0 group-hover:opacity-100 transition-opacity"><span class="material-symbols-outlined text-sm">close</span></button>
+            </div>
+            <div class="flex items-center gap-3 group">
+              <span class="w-20 text-sm font-bold text-error font-mono">WINNER</span>
+              <div class="flex-1 bg-surface-container-high h-2 rounded-full overflow-hidden"><div class="bg-error h-full rounded-full" style="width:65%;opacity:0.85"></div></div>
+              <span class="text-xs font-mono text-on-surface-variant w-12 text-right">1,923</span>
+              <button class="text-outline hover:text-error opacity-0 group-hover:opacity-100 transition-opacity"><span class="material-symbols-outlined text-sm">close</span></button>
+            </div>
+            <div class="flex items-center gap-3 group">
+              <span class="w-20 text-sm font-bold text-tertiary font-mono">URGENT</span>
+              <div class="flex-1 bg-surface-container-high h-2 rounded-full overflow-hidden"><div class="bg-tertiary h-full rounded-full" style="width:40%;opacity:0.8"></div></div>
+              <span class="text-xs font-mono text-on-surface-variant w-12 text-right">942</span>
+              <button class="text-outline hover:text-error opacity-0 group-hover:opacity-100 transition-opacity"><span class="material-symbols-outlined text-sm">close</span></button>
+            </div>
+            <div class="flex items-center gap-3 group">
+              <span class="w-20 text-sm font-bold text-tertiary font-mono">CRYPTO</span>
+              <div class="flex-1 bg-surface-container-high h-2 rounded-full overflow-hidden"><div class="bg-tertiary h-full rounded-full" style="width:25%;opacity:0.65"></div></div>
+              <span class="text-xs font-mono text-on-surface-variant w-12 text-right">612</span>
+              <button class="text-outline hover:text-error opacity-0 group-hover:opacity-100 transition-opacity"><span class="material-symbols-outlined text-sm">close</span></button>
+            </div>
+            <div class="flex items-center gap-3 group">
+              <span class="w-20 text-sm font-bold text-primary font-mono">CLICK</span>
+              <div class="flex-1 bg-surface-container-high h-2 rounded-full overflow-hidden"><div class="bg-primary h-full rounded-full" style="width:18%;opacity:0.6"></div></div>
+              <span class="text-xs font-mono text-on-surface-variant w-12 text-right">441</span>
+              <button class="text-outline hover:text-error opacity-0 group-hover:opacity-100 transition-opacity"><span class="material-symbols-outlined text-sm">close</span></button>
+            </div>
+            <div class="flex items-center gap-3 group">
+              <span class="w-20 text-sm font-bold text-primary font-mono">VERIFY</span>
+              <div class="flex-1 bg-surface-container-high h-2 rounded-full overflow-hidden"><div class="bg-primary h-full rounded-full" style="width:12%;opacity:0.55"></div></div>
+              <span class="text-xs font-mono text-on-surface-variant w-12 text-right">289</span>
+              <button class="text-outline hover:text-error opacity-0 group-hover:opacity-100 transition-opacity"><span class="material-symbols-outlined text-sm">close</span></button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Domain Blocklist -->
+        <section class="bg-surface-container-lowest rounded-2xl shadow-ambient border border-outline-variant/15 p-6">
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="text-lg font-bold text-on-background">Domain Blocklist</h3>
+            <button class="text-sm font-semibold text-error hover:bg-error/10 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1">
+              <span class="material-symbols-outlined text-sm">block</span> Block Domain
+            </button>
+          </div>
+          <div class="space-y-2">
+            <div class="flex items-center justify-between p-3 bg-error/5 border border-error/15 rounded-lg group hover:border-error/30 transition-colors">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-error text-sm" style="font-variation-settings:'FILL' 1;">block</span>
+                <span class="text-sm font-mono font-semibold text-on-background">promo-scam.win</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-on-surface-variant">847 blocked</span>
+                <button class="text-outline hover:text-error opacity-0 group-hover:opacity-100 transition-opacity"><span class="material-symbols-outlined text-sm">close</span></button>
+              </div>
+            </div>
+            <div class="flex items-center justify-between p-3 bg-error/5 border border-error/15 rounded-lg group hover:border-error/30 transition-colors">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-error text-sm" style="font-variation-settings:'FILL' 1;">block</span>
+                <span class="text-sm font-mono font-semibold text-on-background">secure-billing-update.com</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-on-surface-variant">312 blocked</span>
+                <button class="text-outline hover:text-error opacity-0 group-hover:opacity-100 transition-opacity"><span class="material-symbols-outlined text-sm">close</span></button>
+              </div>
+            </div>
+            <div class="flex items-center justify-between p-3 bg-error/5 border border-error/15 rounded-lg group hover:border-error/30 transition-colors">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-error text-sm" style="font-variation-settings:'FILL' 1;">block</span>
+                <span class="text-sm font-mono font-semibold text-on-background">winner-claims.net</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-on-surface-variant">201 blocked</span>
+                <button class="text-outline hover:text-error opacity-0 group-hover:opacity-100 transition-opacity"><span class="material-symbols-outlined text-sm">close</span></button>
+              </div>
+            </div>
+            <div class="flex items-center justify-between p-3 bg-error/5 border border-error/15 rounded-lg group hover:border-error/30 transition-colors">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-error text-sm" style="font-variation-settings:'FILL' 1;">block</span>
+                <span class="text-sm font-mono font-semibold text-on-background">marketing-offers-pro.biz</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-on-surface-variant">156 blocked</span>
+                <button class="text-outline hover:text-error opacity-0 group-hover:opacity-100 transition-opacity"><span class="material-symbols-outlined text-sm">close</span></button>
+              </div>
+            </div>
+            <div class="flex items-center justify-between p-3 bg-error/5 border border-error/15 rounded-lg group hover:border-error/30 transition-colors">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-error text-sm" style="font-variation-settings:'FILL' 1;">block</span>
+                <span class="text-sm font-mono font-semibold text-on-background">account-verify-now.com</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-on-surface-variant">98 blocked</span>
+                <button class="text-outline hover:text-error opacity-0 group-hover:opacity-100 transition-opacity"><span class="material-symbols-outlined text-sm">close</span></button>
+              </div>
+            </div>
+            <button class="w-full mt-2 py-2 text-xs text-primary font-semibold hover:bg-surface-container-low rounded-lg transition-colors">View all 89 domains →</button>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- New Rule Modal -->
+<div id="new-rule-modal" class="modal-backdrop" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="bg-surface-container-lowest rounded-2xl shadow-2xl p-8 w-full max-w-lg mx-4">
+    <div class="flex justify-between items-center mb-6">
+      <h3 class="text-xl font-bold text-on-background">New Detection Rule</h3>
+      <button onclick="document.getElementById('new-rule-modal').classList.remove('open')" class="text-outline hover:text-on-background transition-colors">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <div class="space-y-4">
+      <div>
+        <label class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2 block">Rule Condition</label>
+        <input type="text" placeholder="e.g. Subject contains 'FREE'" class="w-full px-4 py-3 bg-surface-container-low rounded-xl border-none focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm"/>
+      </div>
+      <div>
+        <label class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2 block">Action</label>
+        <select class="w-full px-4 py-3 bg-surface-container-low rounded-xl border-none focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm">
+          <option>Mark as Suspicious</option>
+          <option>Mark as Spam</option>
+          <option>Quarantine &amp; Alert</option>
+          <option>Block &amp; Delete</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2 block">Priority</label>
+        <select class="w-full px-4 py-3 bg-surface-container-low rounded-xl border-none focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm">
+          <option>High</option>
+          <option>Medium</option>
+          <option>Low</option>
+        </select>
+      </div>
+    </div>
+    <div class="flex gap-3 mt-8">
+      <button onclick="document.getElementById('new-rule-modal').classList.remove('open')" class="flex-1 py-3 border border-outline-variant/30 text-on-surface-variant font-semibold rounded-xl hover:bg-surface-container-high transition-colors text-sm">Cancel</button>
+      <button onclick="alert('Demo mode — connect backend to save rules.');document.getElementById('new-rule-modal').classList.remove('open')" class="flex-1 py-3 bg-gradient-to-r from-primary to-primary-container text-white font-bold rounded-xl hover:shadow-lg transition-all active:scale-95 text-sm">Create Rule</button>
+    </div>
+  </div>
+</div>
+
+</body></html>

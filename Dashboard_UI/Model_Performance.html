@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Model Performance - EmailGuard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "error-container": "#ffdad6",
+                "tertiary-fixed": "#ffdbcf",
+                "primary-container": "#1a56db",
+                "on-tertiary-fixed-variant": "#802a00",
+                "on-tertiary-fixed": "#380d00",
+                "on-primary": "#ffffff",
+                "on-primary-container": "#d4dcff",
+                "primary-fixed-dim": "#b5c4ff",
+                "secondary-fixed-dim": "#b5c4ff",
+                "tertiary-container": "#ad3b00",
+                "on-primary-fixed-variant": "#003dab",
+                "on-secondary-fixed-variant": "#334479",
+                "inverse-surface": "#283044",
+                "inverse-primary": "#b5c4ff",
+                "tertiary": "#852b00",
+                "on-background": "#131b2e",
+                "surface-container-highest": "#dae2fd",
+                "on-surface": "#131b2e",
+                "surface-bright": "#faf8ff",
+                "surface-variant": "#dae2fd",
+                "surface-dim": "#d2d9f4",
+                "surface-container": "#eaedff",
+                "inverse-on-surface": "#eef0ff",
+                "outline-variant": "#c3c5d7",
+                "surface-container-lowest": "#ffffff",
+                "secondary": "#4b5c92",
+                "secondary-container": "#b1c2ff",
+                "background": "#faf8ff",
+                "on-error": "#ffffff",
+                "on-tertiary": "#ffffff",
+                "on-surface-variant": "#434654",
+                "error": "#ba1a1a",
+                "on-tertiary-container": "#ffd4c5",
+                "primary-fixed": "#dbe1ff",
+                "outline": "#737686",
+                "on-secondary-fixed": "#01174b",
+                "on-primary-fixed": "#00174d",
+                "surface-tint": "#1353d8",
+                "on-secondary-container": "#3d4e84",
+                "on-error-container": "#93000a",
+                "secondary-fixed": "#dbe1ff",
+                "primary": "#003fb1",
+                "tertiary-fixed-dim": "#ffb59a",
+                "surface-container-high": "#e2e7ff",
+                "surface-container-low": "#f2f3ff",
+                "on-secondary": "#ffffff",
+                "surface": "#faf8ff"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+        },
+        "spacing": {},
+        "fontFamily": {
+                "headline": [
+                        "Inter"
+                ],
+                "body": [
+                        "Inter"
+                ],
+                "label": [
+                        "Inter"
+                ]
+        }
+},
+    },
+  }
+</script>
+<style>
+    body { font-family: 'Inter', sans-serif; background-color: #faf8ff; color: #131b2e; }
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+</style>
+</head>
+<body class="flex min-h-screen">
+<!-- SideNavBar -->
+<aside class="h-screen w-64 fixed left-0 top-0 z-40 bg-[#283044] dark:bg-[#1a1f2b] flex flex-col py-6 shadow-[10px_0_30px_rgba(0,0,0,0.1)]">
+<div class="px-6 mb-8 flex items-center space-x-3">
+<div class="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary-container flex items-center justify-center text-on-primary font-bold shadow-sm">
+            E
+        </div>
+<div>
+<h1 class="text-lg font-bold tracking-tight text-white">EmailGuard</h1>
+<p class="text-xs text-inverse-on-surface/70">Precision Guardian</p>
+</div>
+</div>
+<nav class="flex-1 overflow-y-auto font-sans text-sm font-medium tracking-[0.05em] antialiased Inter">
+<a class="flex items-center space-x-3 text-slate-400 px-4 py-3 mx-2 my-1 hover:bg-[#3d4761]/50 hover:text-white rounded-lg transition-colors group" href="Overview_Dashboard.html">
+<span class="material-symbols-outlined group-hover:text-primary-fixed-dim transition-colors">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center space-x-3 text-[#b5c4ff] bg-[#3d4761] rounded-lg mx-2 my-1 px-4 py-3 font-semibold transition-all" href="Model_Performance.html">
+<span class="material-symbols-outlined text-primary-fixed-dim" style="font-variation-settings: 'FILL' 1;">analytics</span>
+<span>Model Performance</span>
+</a>
+<a class="flex items-center space-x-3 text-slate-400 px-4 py-3 mx-2 my-1 hover:bg-[#3d4761]/50 hover:text-white rounded-lg transition-colors group" href="Email_Database.html">
+<span class="material-symbols-outlined group-hover:text-primary-fixed-dim transition-colors">database</span>
+<span>Email Database</span>
+</a>
+<a class="flex items-center space-x-3 text-slate-400 px-4 py-3 mx-2 my-1 hover:bg-[#3d4761]/50 hover:text-white rounded-lg transition-colors group" href="Rules_Keywords.html">
+<span class="material-symbols-outlined group-hover:text-primary-fixed-dim transition-colors">rule</span>
+<span>Rules &amp; Keywords</span>
+</a>
+<a class="flex items-center space-x-3 text-slate-400 px-4 py-3 mx-2 my-1 hover:bg-[#3d4761]/50 hover:text-white rounded-lg transition-colors group" href="Security_Alerts.html">
+<span class="material-symbols-outlined group-hover:text-primary-fixed-dim transition-colors">shield</span>
+<span>Security Alerts</span>
+</a>
+</nav>
+<div class="px-4 mt-auto space-y-4">
+<button class="w-full py-2.5 px-4 bg-gradient-to-r from-primary to-primary-container hover:from-primary/90 hover:to-primary-container/90 text-on-primary rounded-lg font-medium text-sm transition-all shadow-md">
+            Generate Report
+        </button>
+<div class="border-t border-white/10 pt-4 space-y-1">
+<a class="flex items-center space-x-3 text-slate-400 px-4 py-2 mx-2 hover:bg-[#3d4761]/50 hover:text-white rounded-lg transition-colors text-sm" href="#">
+<span class="material-symbols-outlined text-lg">help_outline</span>
+<span>Help Center</span>
+</a>
+<a class="flex items-center space-x-3 text-slate-400 px-4 py-2 mx-2 hover:bg-[#3d4761]/50 hover:text-white rounded-lg transition-colors text-sm" href="#">
+<span class="material-symbols-outlined text-lg">person_outline</span>
+<span>Account</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Main Canvas -->
+<div class="flex-1 ml-64 flex flex-col min-h-screen">
+<!-- TopAppBar -->
+<header class="fixed top-0 right-0 w-[calc(100%-16rem)] z-30 bg-white/80 dark:bg-[#131b2e]/80 backdrop-blur-xl shadow-[0_1px_2px_rgba(0,0,0,0.05)] flex justify-between items-center px-8 h-16 font-sans text-sm font-medium Inter tracking-normal transition-colors">
+<div class="flex items-center">
+<h2 class="text-xl font-extrabold text-[#131b2e] dark:text-white tracking-tight">Model Performance</h2>
+</div>
+<div class="flex items-center space-x-6">
+<div class="relative focus-within:ring-2 focus-within:ring-[#003fb1]/20 rounded-lg hidden md:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+<input class="pl-9 pr-4 py-2 bg-surface-container-low border-none rounded-lg text-sm focus:ring-0 focus:bg-surface-container-lowest w-64 transition-colors placeholder:text-slate-500 text-on-surface" placeholder="Search Logs" type="text"/>
+</div>
+<div class="flex items-center space-x-2 border-l border-outline-variant/30 pl-6">
+<button class="p-2 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-full transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<button class="p-2 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-full transition-colors">
+<span class="material-symbols-outlined">dark_mode</span>
+</button>
+<button class="ml-2 w-8 h-8 rounded-full overflow-hidden border border-outline-variant/20 hover:ring-2 hover:ring-primary/20 transition-all">
+<img alt="User Analyst Profile" class="w-full h-full object-cover" data-alt="Professional headshot placeholder for user profile avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCOOfwLXaStIPyN_rC3f568zJ8DQW67zTOdIrD7kgy6HFhDC1EjrDiHnNNc8xxfbQtWc-gJ4-vUETvKu_FnCJlK18jUr-V9V1sUpH0nAhhc4qPp5tlwDD3dBlPL0FiaZD1j_9qOBbKp0aMqw46nKmZRCFrg1q2M7SzBEyi_DVV2gUwO7GbHUx0Rn4gkjqGafuM92uwuYJNtEeTRZB6rCk5R4PRFTd-YZXSNJGC8FdiDRjPkuIvQsZNDsXMSfjRDGo3vRKFwwl75-Lw"/>
+</button>
+</div>
+</div>
+</header>
+<!-- Content Area -->
+<main class="flex-1 mt-16 p-8 overflow-y-auto">
+<div class="max-w-7xl mx-auto space-y-8">
+<!-- 1. Performance Metrics -->
+<section class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+<!-- Accuracy -->
+<div class="bg-surface-container-lowest rounded-xl p-5 shadow-[0_4px_20px_rgba(19,27,46,0.03)] flex flex-col items-center justify-center space-y-3 hover:bg-surface-container-low transition-colors group cursor-default">
+<div class="relative w-16 h-16 flex items-center justify-center">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 36 36">
+<path class="text-surface-container-high stroke-current" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke-width="3"></path>
+<path class="text-primary stroke-current drop-shadow-sm" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke-dasharray="97.4, 100" stroke-linecap="round" stroke-width="3"></path>
+</svg>
+<span class="absolute text-sm font-bold text-on-surface">97.4%</span>
+</div>
+<div class="text-center">
+<h3 class="text-xs font-semibold text-on-surface-variant tracking-wider uppercase">Accuracy</h3>
+</div>
+</div>
+<!-- Precision -->
+<div class="bg-surface-container-lowest rounded-xl p-5 shadow-[0_4px_20px_rgba(19,27,46,0.03)] flex flex-col items-center justify-center space-y-3 hover:bg-surface-container-low transition-colors group cursor-default">
+<div class="relative w-16 h-16 flex items-center justify-center">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 36 36">
+<path class="text-surface-container-high stroke-current" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke-width="3"></path>
+<path class="text-secondary stroke-current drop-shadow-sm" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke-dasharray="96.8, 100" stroke-linecap="round" stroke-width="3"></path>
+</svg>
+<span class="absolute text-sm font-bold text-on-surface">96.8%</span>
+</div>
+<div class="text-center">
+<h3 class="text-xs font-semibold text-on-surface-variant tracking-wider uppercase">Precision</h3>
+</div>
+</div>
+<!-- Recall -->
+<div class="bg-surface-container-lowest rounded-xl p-5 shadow-[0_4px_20px_rgba(19,27,46,0.03)] flex flex-col items-center justify-center space-y-3 hover:bg-surface-container-low transition-colors group cursor-default">
+<div class="relative w-16 h-16 flex items-center justify-center">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 36 36">
+<path class="text-surface-container-high stroke-current" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke-width="3"></path>
+<path class="text-primary-container stroke-current drop-shadow-sm" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke-dasharray="98.1, 100" stroke-linecap="round" stroke-width="3"></path>
+</svg>
+<span class="absolute text-sm font-bold text-on-surface">98.1%</span>
+</div>
+<div class="text-center">
+<h3 class="text-xs font-semibold text-on-surface-variant tracking-wider uppercase">Recall</h3>
+</div>
+</div>
+<!-- F1-Score -->
+<div class="bg-surface-container-lowest rounded-xl p-5 shadow-[0_4px_20px_rgba(19,27,46,0.03)] flex flex-col items-center justify-center space-y-3 hover:bg-surface-container-low transition-colors group cursor-default">
+<div class="relative w-16 h-16 flex items-center justify-center">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 36 36">
+<path class="text-surface-container-high stroke-current" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke-width="3"></path>
+<path class="text-secondary-container stroke-current drop-shadow-sm" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke-dasharray="97.4, 100" stroke-linecap="round" stroke-width="3"></path>
+</svg>
+<span class="absolute text-sm font-bold text-on-surface">97.4%</span>
+</div>
+<div class="text-center">
+<h3 class="text-xs font-semibold text-on-surface-variant tracking-wider uppercase">F1-Score</h3>
+</div>
+</div>
+<!-- AUC-ROC -->
+<div class="bg-surface-container-lowest rounded-xl p-5 shadow-[0_4px_20px_rgba(19,27,46,0.03)] flex flex-col items-center justify-center space-y-3 hover:bg-surface-container-low transition-colors group cursor-default">
+<div class="relative w-16 h-16 flex items-center justify-center">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 36 36">
+<path class="text-surface-container-high stroke-current" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke-width="3"></path>
+<path class="text-primary stroke-current drop-shadow-sm" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke-dasharray="99.1, 100" stroke-linecap="round" stroke-width="3"></path>
+</svg>
+<span class="absolute text-sm font-bold text-on-surface">0.991</span>
+</div>
+<div class="text-center">
+<h3 class="text-xs font-semibold text-on-surface-variant tracking-wider uppercase">AUC-ROC</h3>
+</div>
+</div>
+<!-- Training Samples -->
+<div class="bg-gradient-to-br from-primary to-primary-container rounded-xl p-5 shadow-sm flex flex-col items-center justify-center space-y-2 text-on-primary">
+<span class="material-symbols-outlined text-3xl opacity-80 mb-1" style="font-variation-settings: 'FILL' 1;">dataset</span>
+<span class="text-xl font-bold tracking-tight">50,000</span>
+<h3 class="text-[10px] font-semibold text-on-primary-container tracking-wider uppercase">Training Samples</h3>
+</div>
+</section>
+<!-- Main Content Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Left Column (Span 2) -->
+<div class="lg:col-span-2 space-y-8">
+<!-- 2. Confusion Matrix -->
+<section class="bg-surface-container-lowest rounded-xl p-6 shadow-[0_12px_40px_rgba(19,27,46,0.04)] relative overflow-hidden">
+<div class="absolute top-0 left-0 w-1 h-full bg-surface-container-high"></div>
+<h3 class="text-sm font-bold text-on-surface mb-6 flex items-center tracking-wide">
+<span class="material-symbols-outlined mr-2 text-primary text-lg">grid_on</span>
+                            Confusion Matrix — Test Set (24,847 emails)
+                        </h3>
+<div class="grid grid-cols-[auto_1fr_1fr] grid-rows-[auto_1fr_1fr] gap-2 items-center text-center text-sm">
+<!-- Empty Top-Left -->
+<div></div>
+<!-- Predicted Labels -->
+<div class="col-span-2 font-semibold text-on-surface-variant text-xs tracking-wider uppercase pb-2">Predicted</div>
+<!-- Actual Labels (Vertical) -->
+<div class="row-span-2 -rotate-90 font-semibold text-on-surface-variant text-xs tracking-wider uppercase whitespace-nowrap justify-self-center">Actual</div>
+<!-- Headers -->
+<div class="font-medium text-on-surface-variant pb-1">Spam</div>
+<div class="font-medium text-on-surface-variant pb-1">Not Spam</div>
+<div class="font-medium text-on-surface-variant text-right pr-4">Spam</div>
+<!-- Cells -->
+<!-- TP -->
+<div class="bg-primary/10 rounded-lg p-4 border border-primary/20 flex flex-col items-center justify-center h-24 hover:bg-primary/15 transition-colors">
+<span class="text-2xl font-bold text-primary">8,147</span>
+<span class="text-[10px] font-semibold text-primary/70 uppercase tracking-wider mt-1">True Positive</span>
+</div>
+<!-- FN -->
+<div class="bg-error/5 rounded-lg p-4 border border-error/10 flex flex-col items-center justify-center h-24 hover:bg-error/10 transition-colors">
+<span class="text-xl font-bold text-error">146</span>
+<span class="text-[10px] font-semibold text-error/70 uppercase tracking-wider mt-1">False Negative</span>
+</div>
+<div class="font-medium text-on-surface-variant text-right pr-4">Not Spam</div>
+<!-- FP -->
+<div class="bg-tertiary/5 rounded-lg p-4 border border-tertiary/10 flex flex-col items-center justify-center h-24 hover:bg-tertiary/10 transition-colors">
+<span class="text-xl font-bold text-tertiary">174</span>
+<span class="text-[10px] font-semibold text-tertiary/70 uppercase tracking-wider mt-1">False Positive</span>
+</div>
+<!-- TN -->
+<div class="bg-secondary/10 rounded-lg p-4 border border-secondary/20 flex flex-col items-center justify-center h-24 hover:bg-secondary/15 transition-colors">
+<span class="text-2xl font-bold text-secondary">16,380</span>
+<span class="text-[10px] font-semibold text-secondary/70 uppercase tracking-wider mt-1">True Negative</span>
+</div>
+</div>
+</section>
+<!-- 3. Training History Placeholder -->
+<section class="bg-surface-container-lowest rounded-xl p-6 shadow-[0_12px_40px_rgba(19,27,46,0.04)] h-72 flex flex-col">
+<h3 class="text-sm font-bold text-on-surface mb-4 flex items-center tracking-wide">
+<span class="material-symbols-outlined mr-2 text-primary text-lg">show_chart</span>
+                            Training History (20 Epochs)
+                        </h3>
+<div class="flex-1 bg-surface-container-low/50 rounded-lg border border-outline-variant/20 flex items-center justify-center relative overflow-hidden">
+<!-- Faux Chart Rendering -->
+<div class="absolute inset-0 p-4 flex flex-col justify-end">
+<div class="w-full h-px bg-outline-variant/30 absolute bottom-8 left-0"></div>
+<div class="w-full h-px bg-outline-variant/30 absolute bottom-1/2 left-0"></div>
+<div class="w-full h-px bg-outline-variant/30 absolute top-8 left-0"></div>
+<!-- Faux lines -->
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 100 100">
+<polyline fill="none" points="0,80 10,60 20,40 30,25 40,15 50,10 60,8 70,5 80,4 90,3 100,3" stroke="#003fb1" stroke-width="2"></polyline>
+<polyline fill="none" points="0,90 10,70 20,50 30,35 40,25 50,20 60,18 70,12 80,8 90,5 100,4" stroke="#b5c4ff" stroke-dasharray="4" stroke-width="2"></polyline>
+</svg>
+</div>
+<span class="text-xs text-on-surface-variant absolute bottom-2 left-4 font-medium">Epoch 0</span>
+<span class="text-xs text-on-surface-variant absolute bottom-2 right-4 font-medium">Epoch 20</span>
+<div class="absolute top-4 right-4 flex space-x-4">
+<div class="flex items-center text-[10px] font-medium text-on-surface-variant"><span class="w-2 h-2 rounded-full bg-primary mr-1"></span> Accuracy</div>
+<div class="flex items-center text-[10px] font-medium text-on-surface-variant"><span class="w-2 h-2 rounded-full border border-primary-fixed-dim mr-1"></span> Val Accuracy</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Right Column -->
+<div class="space-y-8">
+<!-- 4. ROC Curve -->
+<section class="bg-surface-container-lowest rounded-xl p-6 shadow-[0_12px_40px_rgba(19,27,46,0.04)]">
+<div class="flex justify-between items-center mb-6">
+<h3 class="text-sm font-bold text-on-surface flex items-center tracking-wide">
+<span class="material-symbols-outlined mr-2 text-primary text-lg">ssid_chart</span>
+                                ROC Curve
+                            </h3>
+<span class="px-2 py-1 bg-primary/10 text-primary text-xs font-bold rounded">AUC: 0.991</span>
+</div>
+<div class="aspect-square bg-surface-container-low/30 rounded-lg border border-outline-variant/20 relative p-4">
+<!-- Faux ROC -->
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 100 100">
+<!-- Grid -->
+<line stroke="#c3c5d7" stroke-dasharray="4" stroke-width="1" x1="0" x2="100" y1="100" y2="0"></line>
+<!-- Curve -->
+<path d="M0,100 Q0,10 10,5 T100,0" fill="none" stroke="#003fb1" stroke-width="3"></path>
+</svg>
+<div class="absolute bottom-1 left-1/2 -translate-x-1/2 text-[10px] text-on-surface-variant font-medium">False Positive Rate</div>
+<div class="absolute top-1/2 -left-4 -translate-y-1/2 -rotate-90 text-[10px] text-on-surface-variant font-medium">True Positive Rate</div>
+</div>
+</section>
+<!-- 5. Feature Importance -->
+<section class="bg-surface-container-lowest rounded-xl p-6 shadow-[0_12px_40px_rgba(19,27,46,0.04)]">
+<h3 class="text-sm font-bold text-on-surface mb-6 flex items-center tracking-wide">
+<span class="material-symbols-outlined mr-2 text-primary text-lg">bar_chart</span>
+                            Feature Importance
+                        </h3>
+<div class="space-y-4">
+<!-- Feature 1 -->
+<div>
+<div class="flex justify-between text-xs font-medium text-on-surface mb-1">
+<span>Spam Keywords Count</span>
+<span>0.34</span>
+</div>
+<div class="w-full bg-surface-container-high rounded-full h-1.5">
+<div class="bg-primary h-1.5 rounded-full" style="width: 85%"></div>
+</div>
+</div>
+<!-- Feature 2 -->
+<div>
+<div class="flex justify-between text-xs font-medium text-on-surface mb-1">
+<span>Sender Reputation Score</span>
+<span>0.28</span>
+</div>
+<div class="w-full bg-surface-container-high rounded-full h-1.5">
+<div class="bg-primary/80 h-1.5 rounded-full" style="width: 70%"></div>
+</div>
+</div>
+<!-- Feature 3 -->
+<div>
+<div class="flex justify-between text-xs font-medium text-on-surface mb-1">
+<span>URL Density</span>
+<span>0.15</span>
+</div>
+<div class="w-full bg-surface-container-high rounded-full h-1.5">
+<div class="bg-primary/60 h-1.5 rounded-full" style="width: 45%"></div>
+</div>
+</div>
+<!-- Feature 4 -->
+<div>
+<div class="flex justify-between text-xs font-medium text-on-surface mb-1">
+<span>Attachment Type Flag</span>
+<span>0.12</span>
+</div>
+<div class="w-full bg-surface-container-high rounded-full h-1.5">
+<div class="bg-primary/50 h-1.5 rounded-full" style="width: 35%"></div>
+</div>
+</div>
+<!-- Feature 5 -->
+<div>
+<div class="flex justify-between text-xs font-medium text-on-surface mb-1">
+<span>Header Anomaly</span>
+<span>0.08</span>
+</div>
+<div class="w-full bg-surface-container-high rounded-full h-1.5">
+<div class="bg-primary/40 h-1.5 rounded-full" style="width: 20%"></div>
+</div>
+</div>
+</div>
+</section>
+</div>
+</div>
+<!-- 6. Detection Results Table -->
+<section class="bg-surface-container-lowest rounded-xl shadow-[0_12px_40px_rgba(19,27,46,0.04)] overflow-hidden">
+<div class="p-6 border-b border-surface-container-high flex justify-between items-center bg-surface-bright">
+<h3 class="text-sm font-bold text-on-surface flex items-center tracking-wide">
+<span class="material-symbols-outlined mr-2 text-primary text-lg">table_chart</span>
+                        Recent Detection Results
+                    </h3>
+<button class="text-primary text-xs font-semibold hover:text-primary-container transition-colors flex items-center">
+                        View All <span class="material-symbols-outlined text-[14px] ml-1">chevron_right</span>
+</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low text-xs font-semibold text-on-surface-variant tracking-wider uppercase border-b border-surface-container-high">
+<th class="py-3 px-6 font-medium">Email ID</th>
+<th class="py-3 px-6 font-medium">Sender</th>
+<th class="py-3 px-6 font-medium">Subject Preview</th>
+<th class="py-3 px-6 font-medium">Predicted Label</th>
+<th class="py-3 px-6 font-medium">Score</th>
+<th class="py-3 px-6 font-medium">Result</th>
+<th class="py-3 px-6 font-medium text-right">Timestamp</th>
+</tr>
+</thead>
+<tbody class="text-sm text-on-surface divide-y divide-surface-container-low">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-lowest/50 transition-colors group cursor-pointer">
+<td class="py-3 px-6 font-mono text-xs text-on-surface-variant">#EQ-891A</td>
+<td class="py-3 px-6 font-medium">admin@secure-billing-update.com</td>
+<td class="py-3 px-6 truncate max-w-[200px] text-on-surface-variant">URGENT: Your account will be suspended...</td>
+<td class="py-3 px-6">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-error/10 text-error">
+                                        Spam
+                                    </span>
+</td>
+<td class="py-3 px-6 font-mono text-xs">0.998</td>
+<td class="py-3 px-6">
+<span class="inline-flex items-center text-primary text-xs font-medium">
+<span class="material-symbols-outlined text-[14px] mr-1">check_circle</span> Correct
+                                    </span>
+</td>
+<td class="py-3 px-6 text-right text-xs text-on-surface-variant">10:42 AM</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-lowest/50 transition-colors group cursor-pointer">
+<td class="py-3 px-6 font-mono text-xs text-on-surface-variant">#EQ-891B</td>
+<td class="py-3 px-6 font-medium">hr@internal-corp.net</td>
+<td class="py-3 px-6 truncate max-w-[200px] text-on-surface-variant">Q3 Performance Review Schedule</td>
+<td class="py-3 px-6">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-secondary/10 text-secondary">
+                                        Not Spam
+                                    </span>
+</td>
+<td class="py-3 px-6 font-mono text-xs">0.012</td>
+<td class="py-3 px-6">
+<span class="inline-flex items-center text-primary text-xs font-medium">
+<span class="material-symbols-outlined text-[14px] mr-1">check_circle</span> Correct
+                                    </span>
+</td>
+<td class="py-3 px-6 text-right text-xs text-on-surface-variant">10:38 AM</td>
+</tr>
+<!-- Row 3 (Incorrect) -->
+<tr class="hover:bg-surface-container-lowest/50 transition-colors group cursor-pointer bg-error/5">
+<td class="py-3 px-6 font-mono text-xs text-on-surface-variant">#EQ-891C</td>
+<td class="py-3 px-6 font-medium">newsletter@marketing-weekly.io</td>
+<td class="py-3 px-6 truncate max-w-[200px] text-on-surface-variant">Top 10 Growth Hacks for 2024</td>
+<td class="py-3 px-6">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-error/10 text-error">
+                                        Spam
+                                    </span>
+</td>
+<td class="py-3 px-6 font-mono text-xs">0.512</td>
+<td class="py-3 px-6">
+<span class="inline-flex items-center text-tertiary text-xs font-medium">
+<span class="material-symbols-outlined text-[14px] mr-1">cancel</span> False Positive
+                                    </span>
+</td>
+<td class="py-3 px-6 text-right text-xs text-on-surface-variant">10:15 AM</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container-lowest/50 transition-colors group cursor-pointer">
+<td class="py-3 px-6 font-mono text-xs text-on-surface-variant">#EQ-891D</td>
+<td class="py-3 px-6 font-medium">info@global-logistics-track.com</td>
+<td class="py-3 px-6 truncate max-w-[200px] text-on-surface-variant">Track your recent package delivery #991...</td>
+<td class="py-3 px-6">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-error/10 text-error">
+                                        Spam
+                                    </span>
+</td>
+<td class="py-3 px-6 font-mono text-xs">0.887</td>
+<td class="py-3 px-6">
+<span class="inline-flex items-center text-primary text-xs font-medium">
+<span class="material-symbols-outlined text-[14px] mr-1">check_circle</span> Correct
+                                    </span>
+</td>
+<td class="py-3 px-6 text-right text-xs text-on-surface-variant">09:55 AM</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</div>
+</main>
+</div>
+</body></html>
