@@ -15,11 +15,7 @@
 
 ## 🌐 Live Demo (GitHub Pages)
 
-<<<<<<< HEAD
-**▶ [View Dashboard → https://omkar-ai-wed.github.io/EmailGuard/](https://omkar-ai-wed.github.io/EmailGuard/)**
-=======
-**[View Dashboard →]([https://Omkar-ai-wed.github.io/EmailGuard/)**
->>>>>>> 12f1df7055db15a782e9bd82e8e8c1404a11db9c
+**▶ [View Dashboard](https://omkar-ai-wed.github.io/EmailGuard/)**
 
 > The dashboard runs in **demo mode** with realistic sample data when the backend is offline — no setup needed to view it!
 
@@ -228,6 +224,13 @@ git commit -m "Initial commit: EmailGuard dashboard"
 git branch -M main
 git remote add origin https://github.com/Omkar-ai-wed/EmailGuard.git
 git push -u origin main
+```
+
+If your repository is already initialized and you only need to push Render deployment updates:
+```bash
+git add render.yaml backend/run.py Dashboard_UI/
+git commit -m "chore: add Render deployment config"
+git push
 ```
 
 **Step 2 — Enable GitHub Pages**
