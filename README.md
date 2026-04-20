@@ -15,7 +15,11 @@
 
 ## 🌐 Live Demo (GitHub Pages)
 
+<<<<<<< HEAD
 **▶ [View Dashboard → https://omkar-ai-wed.github.io/EmailGuard/](https://omkar-ai-wed.github.io/EmailGuard/)**
+=======
+**[View Dashboard →]([https://Omkar-ai-wed.github.io/EmailGuard/)**
+>>>>>>> 12f1df7055db15a782e9bd82e8e8c1404a11db9c
 
 > The dashboard runs in **demo mode** with realistic sample data when the backend is offline — no setup needed to view it!
 
