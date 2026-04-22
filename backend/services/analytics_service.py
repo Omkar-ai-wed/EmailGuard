@@ -24,8 +24,17 @@ def get_overview_stats(db: Session) -> dict:
         .first()
     )
     accuracy = latest_metric.accuracy if latest_metric else 97.4
-    false_positive_rate = latest_metric.false_positives / max(total, 1) * 100 if latest_metric else 2.1
-    false_negative_rate = latest_metric.false_negatives / max(total, 1) * 100 if latest_metric else 0.5
+    if latest_metric:
+        # Denominator: total classified samples from the confusion matrix
+        cm_total = (
+            latest_metric.true_positives + latest_metric.false_positives +
+            latest_metric.true_negatives + latest_metric.false_negatives
+        ) or 1
+        false_positive_rate = round(latest_metric.false_positives / cm_total * 100, 2)
+        false_negative_rate = round(latest_metric.false_negatives / cm_total * 100, 2)
+    else:
+        false_positive_rate = 2.1
+        false_negative_rate = 0.5
 
     return {
         "total_emails": total,
