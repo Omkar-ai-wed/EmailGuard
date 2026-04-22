@@ -120,7 +120,8 @@ def run_classification_pipeline(
 
     # ── Step 6: Category Decision ─────────────────────────────────────────────
     category = decide_category(risk_score, has_phishing_link)
-    confidence = round(abs(risk_score - 50) / 50, 2)  # Higher confidence the more extreme the score
+    # Confidence: 0.0 at the decision boundary (50), 1.0 at extremes (0 or 100)
+    confidence = round(min(max(abs(risk_score - 50) / 50, 0.0), 1.0), 2)
 
     # ── Step 7: Update EmailRecord ────────────────────────────────────────────
     email.risk_score = risk_score
