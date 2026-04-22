@@ -14,6 +14,36 @@ from models.user import User
 router = APIRouter()
 
 
+@router.get("/history/all")
+def classification_history(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=200),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Return recent classification history log."""
+    records = (
+        db.query(Classification)
+        .order_by(Classification.classified_at.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+    return [
+        {
+            "id": c.id,
+            "email_id": c.email_id,
+            "method": c.method,
+            "predicted_category": c.predicted_category,
+            "confidence_score": c.confidence_score,
+            "keyword_score": c.keyword_score,
+            "ml_score": c.ml_score,
+            "classified_at": c.classified_at,
+        }
+        for c in records
+    ]
+
+
 @router.post("/{email_id}", response_model=ClassificationResult)
 def classify_email(
     email_id: int,
@@ -81,31 +111,4 @@ def get_classification(
     )
 
 
-@router.get("/history/all")
-def classification_history(
-    skip: int = Query(0, ge=0),
-    limit: int = Query(50, ge=1, le=200),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    """Return recent classification history log."""
-    records = (
-        db.query(Classification)
-        .order_by(Classification.classified_at.desc())
-        .offset(skip)
-        .limit(limit)
-        .all()
-    )
-    return [
-        {
-            "id": c.id,
-            "email_id": c.email_id,
-            "method": c.method,
-            "predicted_category": c.predicted_category,
-            "confidence_score": c.confidence_score,
-            "keyword_score": c.keyword_score,
-            "ml_score": c.ml_score,
-            "classified_at": c.classified_at,
-        }
-        for c in records
-    ]
+
