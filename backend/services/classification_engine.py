@@ -13,7 +13,7 @@ Pipeline (in order):
 """
 
 import logging
-import uuid
+from typing import Optional
 from datetime import datetime
 from sqlalchemy.orm import Session
 
@@ -72,9 +72,9 @@ def decide_category(risk_score: float, is_phishing_link: bool = False) -> str:
 def run_classification_pipeline(
     db: Session,
     email: EmailRecord,
-    extra_links: list[str] = None,
-    extra_attachments: list[dict] = None,
-    user_id: int = None,
+    extra_links: Optional[list[str]] = None,
+    extra_attachments: Optional[list[dict]] = None,
+    user_id: Optional[int] = None,
 ) -> Classification:
     """
     Full classification pipeline for one email.
