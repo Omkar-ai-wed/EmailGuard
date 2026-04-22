@@ -21,5 +21,6 @@ class SenderReputation(Base):
     is_blacklisted = Column(Boolean, default=False)
     total_emails_received = Column(Integer, default=0)
     spam_count = Column(Integer, default=0)
-    last_seen = Column(DateTime(timezone=True), server_default=func.now())
+    last_seen = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
     notes = Column(Text, nullable=True)
