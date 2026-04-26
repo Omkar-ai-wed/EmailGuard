@@ -31,7 +31,7 @@ async def lifespan(app: FastAPI):
     """Startup: create DB tables + warm up ML model."""
     logger.info("Starting EmailGuard API…")
     Base.metadata.create_all(bind=engine)
-    logger.info("Database tables ready (SQLite: emailguard.db)")
+    logger.info("Database tables ready (Supabase / PostgreSQL)")
 
     # Pre-load and train the ML classifier so first request is fast
     from services.ml_model import get_classifier
