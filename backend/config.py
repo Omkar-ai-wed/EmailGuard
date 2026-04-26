@@ -17,10 +17,10 @@ class Settings:
     DEBUG: bool = os.getenv("DEBUG", "true").lower() == "true"
 
     # ── Database ─────────────────────────────────────────
-    # Supabase (PostgreSQL) via psycopg2 driver.
-    # Format: postgresql+psycopg2://postgres.<project-ref>:<password>@aws-0-<region>.pooler.supabase.com:6543/postgres
+    # Supabase (PostgreSQL) via pg8000 driver (pure Python, no compiler needed).
+    # Format: postgresql+pg8000://postgres.<project-ref>:<password>@aws-0-<region>.pooler.supabase.com:6543/postgres
     # Get your connection string from: Supabase Dashboard → Settings → Database → Connection String → URI
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql+psycopg2://postgres:password@localhost:5432/emailguard")
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql+pg8000://postgres:password@localhost:5432/emailguard")
 
     # ── JWT Auth ─────────────────────────────────────────
     SECRET_KEY: str = os.getenv("SECRET_KEY", "emailguard-super-secret-key-2024-change-in-prod")
