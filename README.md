@@ -1,269 +1,278 @@
-# 🛡️ EmailGuard — Unwanted Email Detection System
-
 <p align="center">
-  <img src="https://img.shields.io/badge/Python-3.11-blue?style=flat-square&logo=python" alt="Python 3.11"/>
-  <img src="https://img.shields.io/badge/FastAPI-0.111-009688?style=flat-square&logo=fastapi" alt="FastAPI"/>
-  <img src="https://img.shields.io/badge/scikit--learn-1.4-f7931e?style=flat-square&logo=scikitlearn" alt="scikit-learn"/>
-  <img src="https://img.shields.io/badge/SQLite-Database-003B57?style=flat-square&logo=sqlite" alt="SQLite"/>
-  <img src="https://img.shields.io/badge/Deployed-Render-46E3B7?style=flat-square&logo=render" alt="Render"/>
-  <img src="https://img.shields.io/badge/License-MIT-yellow?style=flat-square" alt="MIT"/>
+  <img src="Dashboard_UI/assets/logo.png" width="120" alt="EmailGuard Logo"/>
 </p>
 
-> A full-stack **ML-powered email threat detection system** with a live analytics dashboard, FastAPI REST backend, and scikit-learn classifier. Built for college demo/production use.
+# 🛡️ EmailGuard
+### Hybrid AI-Powered Email Security & Threat Intelligence
+
+<p align="center">
+  <img src="https://skillicons.dev/icons?i=python,fastapi,js,tailwind,postgres,supabase,sklearn,vercel,render" />
+</p>
+
+**EmailGuard** is a high-performance, enterprise-grade security gateway designed to solve the "Modern Phishing Problem." It replaces traditional, easily-bypassed static filters with a **consensus-based Hybrid Engine** that combines semantic ML classification with real-time heuristic rule matching.
 
 ---
 
-## 🌐 Live Links
+## 🎯 The Problem
+Email remains the #1 breach vector. Current solutions struggle with:
+*   **Polymorphic Phishing:** Attackers slightly change wording to bypass static keyword filters.
+*   **Analysis Latency:** Real-time scanning often slows down business communication.
+*   **Data Silos:** Security results are hidden in logs rather than visualized for actionable intelligence.
 
-| Service | URL |
-|---------|-----|
-| 🖥️ **Dashboard (GitHub Pages)** | [https://omkar-ai-wed.github.io/EmailGuard/](https://omkar-ai-wed.github.io/EmailGuard/) |
-| ⚙️ **Backend API (Render)** | [https://emailguard-api.onrender.com](https://emailguard-api.onrender.com) |
-| 📖 **Swagger / API Docs** | [https://emailguard-api.onrender.com/docs](https://emailguard-api.onrender.com/docs) |
-| ❤️ **Health Check** | [https://emailguard-api.onrender.com/health](https://emailguard-api.onrender.com/health) |
-
-> **Note:** The free Render tier sleeps after 15 min of inactivity — first request may take ~50 seconds to wake up. The dashboard falls back to demo data automatically if the API is sleeping.
+## 💡 The Solution
+EmailGuard provides a multi-layered defense that analyzes emails in **non-blocking background threads**, returning a risk assessment in milliseconds. It doesn't just block; it **classifies** intent (Wanted, Spam, Suspicious, Phishing) to give security teams granular control.
 
 ---
 
-## 📸 Dashboard Pages
+## 🏗️ System Architecture
 
-| Page | Description |
-|------|-------------|
-| 🏠 **Overview** | Live stats, email table, security alerts panel |
-| 🗄️ **Email Database** | Searchable & paginated email records |
-| 🔑 **Rules & Keywords** | Detection rules, spam keywords, domain blocklist |
-| 📊 **Model Performance** | Accuracy, confusion matrix, ROC curve, feature importance |
-| 🚨 **Security Alerts** | Real-time alerts with severity filtering |
+```mermaid
+graph TD
+    %% Styling
+    classDef client fill:#003fb1,stroke:#002b7a,color:#ffffff,stroke-width:2px;
+    classDef api fill:#b5c4ff,stroke:#85a0ff,color:#131b2e,stroke-width:2px;
+    classDef logic fill:#dbe1ff,stroke:#b5c4ff,color:#131b2e,stroke-width:2px;
+    classDef data fill:#ffffff,stroke:#dae2fd,color:#131b2e,stroke-width:2px;
+    classDef threat fill:#ba1a1a,stroke:#93000a,color:#ffffff,stroke-width:2px;
 
----
+    subgraph Client_Layer [Frontend & Gateway]
+        UI[Vanilla JS Dashboard]:::client
+        Ext[Email Ingestion]:::client
+    end
 
-## 🗂️ Project Structure
+    subgraph API_Layer [FastAPI Infrastructure]
+        API[REST API Gateway]:::api
+        Auth[JWT Middleware]:::api
+        Lim[SlowAPI Rate Limiter]:::api
+    end
 
+    subgraph Logic_Layer [Security Intelligence]
+        BT[BackgroundTasks Queue]:::logic
+        ML[scikit-learn Classifier]:::logic
+        HE[Heuristic Engine]:::logic
+    end
+
+    subgraph Data_Layer [Persistence]
+        DB[(PostgreSQL - Supabase)]:::data
+        TTL[Thread-Safe Cache]:::data
+    end
+
+    UI -->|JSON| API
+    Ext -->|Webhook| API
+    API --> Lim
+    Lim --> Auth
+    Auth --> BT
+    BT --> ML
+    BT --> HE
+    ML --> DB
+    HE --> DB
+    HE -.->|Fast Read| TTL
+    TTL -.->|Sync| DB
+
+    %% Highlight Threat Flow
+    ML -->|High Risk| Alert[Security Alert]:::threat
+    HE -->|Blocked| Alert
 ```
+
+### 🔍 Architecture Explanation
+1.  **Request Flow:** API requests enter through a **Rate Limiter** (SlowAPI) to prevent DDoS. Valid requests are authenticated via **JWT**.
+2.  **Immediate Hand-off:** Upon ingestion, the API returns a `202 Accepted`. The analysis is moved to **FastAPI BackgroundTasks**, ensuring the client is never blocked.
+3.  **The Consensus Loop:** The ML model (semantic) and Heuristic Engine (structural) analyze the email in parallel.
+4.  **Data Persistence:** Results are committed to **Supabase (PostgreSQL)**, and the dashboard polls optimized views for real-time updates.
+
+---
+
+## 🔁 Life of an Email (The Pipeline)
+1.  **User Ingests:** Payload sent to `/emails/ingest`.
+2.  **API Validation:** Pydantic schemas enforce strict data types.
+3.  **Async Processing:** System starts classification:
+    *   **Vectorization:** TF-IDF converts text to numerical features.
+    *   **Inference:** Multinomial Naive Bayes predicts category.
+    *   **Rules:** Scans for high-risk domains and keywords using a **Thread-Safe TTL Cache**.
+4.  **Scoring:** Consensus score generated.
+5.  **Alerting:** High-risk (Score > 80) triggers an immediate entry in the **Security Alerts** table.
+
+---
+
+## 📂 Project Structure
+
+```bash
 EmailGuard/
-├── index.html                      # → Redirects to dashboard (GitHub Pages entry)
-├── render.yaml                     # Render deployment blueprint
-├── README.md
-├── .gitignore
-│
-├── Dashboard_UI/                   # 🖥️  Frontend (pure HTML + Tailwind CDN)
-│   ├── Overview_Dashboard.html
-│   ├── Email_Database.html
-│   ├── Rules_Keywords.html
-│   ├── Model_Performance.html
-│   └── Security_Alerts.html
-│
-└── backend/                        # ⚙️  FastAPI Backend
-    ├── main.py                     # App entry point
-    ├── run.py                      # Quick start: python run.py
-    ├── start_all.py                # Starts BOTH servers at once
-    ├── seed_data.py                # Populate DB with demo data
-    ├── config.py                   # Settings (JWT, DB URL)
-    ├── database.py                 # SQLAlchemy engine
-    ├── requirements.txt            # pip dependencies
-    ├── .python-version             # Python 3.11.9 (for Render)
-    ├── .env.example                # Copy → .env
-    ├── models/                     # ORM models (User, Email, Alert…)
-    ├── routers/                    # API routes
-    ├── schemas/                    # Pydantic schemas
-    ├── middleware/                 # Auth middleware
-    └── services/                  # Business logic + ML model
+├── backend/                # FastAPI Application Source
+│   ├── middleware/         # Auth, CORS, and Security Middleware
+│   ├── models/             # SQLAlchemy Database Models
+│   ├── routers/            # API Endpoints (Ingest, Analytics, Auth)
+│   ├── schemas/            # Pydantic Data Validation Models
+│   ├── services/           # Business Logic & ML Classifier
+│   ├── config.py           # Environment Configuration
+│   ├── database.py         # Supabase/PostgreSQL Connection
+│   ├── main.py             # App Entry Point
+│   └── requirements.txt    # Python Dependencies
+├── Dashboard_UI/           # Frontend Application (Vanilla JS + Tailwind)
+│   ├── assets/             # Brand Assets & Logos
+│   ├── Overview_Dashboard.html # Primary Analytics View
+│   ├── Email_Database.html     # Historical Record Explorer
+│   ├── Rules_Keywords.html     # Security Rule Management
+│   ├── Model_Performance.html  # ML Precision & Accuracy Tracking
+│   ├── Security_Alerts.html    # Incident Response Panel
+│   ├── Login.html/Signup.html  # Authentication Flow
+│   └── dashboard_core.js       # Central Dashboard Logic & API Client
+├── supabase_schema.sql     # Database Table Definitions
+├── render.yaml             # Render.com Deployment Blueprints
+└── README.md               # You are here 📍
 ```
 
 ---
 
-## 🚀 How to Run — Step by Step
+## 🧪 API Documentation
 
-There are **3 ways** to run EmailGuard:
-
----
-
-### ▶️ Option 1 — Frontend Only (No Setup)
-
-> Works instantly. No Python, no terminal. Perfect for viewing the dashboard.
-
-1. Clone or download the repository
-2. Open `index.html` in any browser **OR** double-click `Dashboard_UI/Overview_Dashboard.html`
-3. Done ✅ — dashboard loads with demo data automatically
-
----
-
-### ▶️ Option 2 — One-Command Start (Recommended)
-
-> Starts **both** the API backend and the frontend server at once.
-
-**Step 1 — Clone the repository**
-```powershell
-git clone https://github.com/Omkar-ai-wed/EmailGuard.git
-cd EmailGuard
+### 1. Authentication
+`POST /api/v1/auth/login`
+**Request:**
+```json
+{
+  "username": "admin",
+  "password": "secure_password"
+}
+```
+**Response:**
+```json
+{
+  "access_token": "eyJhbG...",
+  "token_type": "bearer"
+}
 ```
 
-**Step 2 — Install Python dependencies**
-```powershell
-cd backend
-pip install -r requirements.txt
+### 2. Email Ingestion
+`POST /api/v1/emails/ingest` (Requires Bearer Token)
+**Request:**
+```json
+{
+  "sender_email": "urgent@bank-verify.com",
+  "subject": "Action Required",
+  "body_text": "Your account is locked. Click here...",
+  "has_attachments": false
+}
+```
+**Response:**
+```json
+{
+  "status": "processing",
+  "message_id": "8a2f-11ed",
+  "classification_queued": true
+}
 ```
 
-**Step 3 — Start everything**
-```powershell
-python start_all.py
+### 3. Analytics
+`GET /api/v1/analytics/overview`
+**Response:**
+```json
+{
+  "total_emails": 1250,
+  "spam_detected": 432,
+  "phishing_blocked": 89,
+  "accuracy": 0.982
+}
 ```
-
-This automatically:
-- 🌱 Seeds the database on first run (demo emails, users, keywords)
-- 🚀 Starts FastAPI at → `http://localhost:8000`
-- 🌐 Serves dashboard at → `http://localhost:3000`
-- 🌍 Opens the browser automatically
 
 ---
 
-### ▶️ Option 3 — Manual Start (Two Terminals)
-
-**Terminal 1 — Backend API**
-```powershell
-cd backend
-pip install -r requirements.txt
-copy .env.example .env
-python seed_data.py
-python run.py
-```
-
-API is live at:
-- 🔗 `http://localhost:8000`
-- 📖 Swagger: `http://localhost:8000/docs`
-- ❤️ Health: `http://localhost:8000/health`
-
-**Terminal 2 — Frontend Server**
-```powershell
-cd Dashboard_UI
-python -m http.server 3000
-```
-
-Dashboard: `http://localhost:3000/Overview_Dashboard.html`
+## 🔐 Authentication Flow
+1.  **Login:** Frontend sends credentials; Backend verifies and signs a **JWT (HS256)**.
+2.  **Storage:** Token is stored in `localStorage` (`eg_token`).
+3.  **Authorization:** All subsequent API calls include the token in the `Authorization: Bearer <token>` header.
+4.  **Middleware:** `auth_middleware.py` intercepts requests, decodes the token, and injects the `current_user` into the dependency injection graph.
 
 ---
 
-## 🔑 Default Login Credentials
+## 📊 Features Explained
 
-| Role | Username | Password | Access Level |
-|------|----------|----------|--------------|
-| Admin | `admin` | `admin123` | Full access |
-| Analyst | `analyst` | `analyst123` | Classify & view |
-| Viewer | `viewer` | `viewer123` | Read-only |
-
-> The dashboard auto-logs in as **analyst** on page load — no manual login needed.
+*   🚀 **Async Analysis Engine**: Uses non-blocking background threads so security checks never delay user operations.
+*   🤖 **Hybrid Intelligence**: Combines ML intent analysis with structural heuristics for zero-day threat detection.
+*   📈 **Live Performance Tracking**: Monitors F1-Score and False Positive rates in real-time, allowing analysts to "see" the model's health.
+*   🛡️ **Dynamic Keyword Management**: Instantly add/remove security rules that take effect across the entire system without a restart.
 
 ---
 
-## 📡 API Endpoints Reference
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/v1/auth/register` | Create new user account |
-| `POST` | `/api/v1/auth/login` | Get JWT access token |
-| `GET` | `/api/v1/analytics/overview` | Overall dashboard stats |
-| `GET` | `/api/v1/emails/` | List emails (paginated) |
-| `POST` | `/api/v1/emails/ingest` | Submit email for classification |
-| `PATCH` | `/api/v1/emails/{id}/status` | Update email status |
-| `GET` | `/api/v1/alerts/` | Get security alerts |
-| `PATCH` | `/api/v1/alerts/{id}/resolve` | Resolve an alert |
-| `GET` | `/api/v1/keywords/` | List spam keywords |
-| `POST` | `/api/v1/keywords/` | Add new keyword rule |
-| `GET` | `/api/v1/classify/{email_id}` | Get classification details |
-| `GET` | `/api/v1/reputation/` | Sender reputation records |
-| `GET` | `/docs` | Interactive Swagger UI |
-
-Base URL (production): `https://emailguard-api.onrender.com`
+## ⚡ Performance Design
+*   **Database Optimizations:** Uses optimized PostgreSQL views for the dashboard, replacing expensive `COUNT(*)` scans with aggregated materialized-style queries.
+*   **Caching Strategy:** Implements a `Thread-Safe TTL Cache` for security rules, reducing DB round-trips for the most frequently matched patterns.
+*   **Minimal Payload:** API responses are compressed and structured for minimum mobile latency.
 
 ---
 
-## 🧠 ML Model Details
+## 🛠️ Local Setup
 
-| Property | Value |
-|----------|-------|
-| Algorithm | Multinomial Naive Bayes (scikit-learn) |
-| Feature Extraction | TF-IDF (subject + body) |
-| Additional Features | Sender reputation, URL density, attachment flags, header anomaly |
-| Output Classes | `wanted`, `unwanted` (spam), `suspicious`, `phishing` |
-| Accuracy | **97.4%** |
-| Precision | **96.8%** |
-| Recall | **98.1%** |
-| F1-Score | **97.4%** |
-| AUC-ROC | **0.991** |
+### Backend (FastAPI)
+1.  `cd backend`
+2.  `python -m venv venv && source venv/bin/activate`
+3.  `pip install -r requirements.txt`
+4.  `cp .env.example .env` (Add your Supabase credentials)
+5.  `python run.py`
+
+### Frontend (Dashboard)
+1.  `cd Dashboard_UI`
+2.  `python -m http.server 3000`
+3.  Open `http://localhost:3000/Login.html`
 
 ---
 
 ## ☁️ Deployment
 
-### Backend — Render (Live)
+### ☁️ Infrastructure Mapping
 
-The backend is deployed on Render via `render.yaml` (Blueprint). It auto-deploys on every push to `main`.
+| Layer | Platform | Service Type | Status |
+| :--- | :--- | :--- | :--- |
+| **Frontend** | ![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white) | Static Edge Hosting | ![Online](https://img.shields.io/badge/LIVE-success?style=flat-square) |
+| **Backend API** | ![Render](https://img.shields.io/badge/Render-46E3B7?style=for-the-badge&logo=render&logoColor=white) | Managed Python Service | ![Online](https://img.shields.io/badge/LIVE-success?style=flat-square) |
+| **Database** | ![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white) | Managed PostgreSQL | ![Online](https://img.shields.io/badge/LIVE-success?style=flat-square) |
 
-**To redeploy manually:**
-```powershell
-git add .
-git commit -m "your message"
-git push
+```mermaid
+graph LR
+    A[Local Dev] -->|git push| B(GitHub Repository)
+    B -->|Automatic Deploy| C{CI/CD Pipeline}
+    C -->|Static Build| D[Vercel Dashboard]
+    C -->|Docker Build| E[Render API]
+    E <-->|PostgreSQL| F[(Supabase Cloud)]
+    
+    style D fill:#000,color:#fff
+    style E fill:#46E3B7,color:#fff
+    style F fill:#3ECF8E,color:#fff
 ```
-Render will detect the push and trigger a new build automatically.
 
-**Environment variables set on Render:**
-
-| Variable | Value |
-|----------|-------|
-| `PYTHON_VERSION` | `3.11.9` |
-| `DEBUG` | `false` |
-| `DATABASE_URL` | `sqlite:///./emailguard.db` |
-| `SECRET_KEY` | *(auto-generated by Render)* |
-
-### Frontend — GitHub Pages
-
-1. Go to your repo → **Settings → Pages**
-2. Source: **Deploy from a branch** → Branch: `main` | Folder: `/ (root)`
-3. Click **Save** → live in ~1 minute
-
-**Live URL:** `https://omkar-ai-wed.github.io/EmailGuard/`
+### Required Environment Variables
+| Key | Purpose | Example |
+|---|---|---|
+| `DATABASE_URL` | Supabase PG connection | `postgresql://...` |
+| `SECRET_KEY` | JWT signing secret | `your-long-secret` |
+| `ALLOWED_ORIGINS` | CORS protection | `https://your-vercel-app.com` |
 
 ---
 
-## 🔧 Troubleshooting
-
-**❌ `pip` not recognized**
-```powershell
-python -m pip install -r requirements.txt
-```
-
-**❌ `uvicorn` not recognized**
-```powershell
-python -m uvicorn main:app --port 8000 --reload
-```
-
-**❌ Port already in use**
-```powershell
-netstat -ano | findstr :8000
-taskkill /PID <PID_NUMBER> /F
-```
-
-**❌ Database errors — reset the database**
-```powershell
-cd backend
-del emailguard.db
-python seed_data.py
-python run.py
-```
-
-**❌ Render build fails (numpy/scikit-learn error)**
-
-Ensure `requirements.txt` uses flexible pins:
-```
-scikit-learn>=1.4.2
-numpy>=1.26.4
-```
-And `backend/.python-version` contains `3.11.9`.
+## 🧭 How To Use (User Flow)
+1.  **Sign Up/Login:** Access the portal via the Auth gateway.
+2.  **Analyze Email:** Click the **bolt icon** (Analyze Email) in the top bar.
+3.  **Input Data:** Paste a suspicious email sender and body.
+4.  **Monitor:** Watch the **Real-time Stats** in the Overview tab update as the background analysis completes.
+5.  **Review Alerts:** Check the **Security Alerts** panel for high-risk incident logs.
 
 ---
 
-## 📄 License
+## 🚧 Limitations & Constraints
+*   **Single Node Caching:** Current TTL cache is local; requires **Redis** for multi-instance scaling.
+*   **ML Model:** Uses Naive Bayes (Fast but basic). Not yet capable of deep Transformer-based (BERT) semantic analysis.
+*   **Dataset:** Current training set is ~25k samples; performance may vary with complex polymorphic attacks.
 
-MIT License — free to use for academic, personal, and commercial projects.
+---
+
+## 🔮 Future Roadmap
+*   [ ] **Redis Integration:** Move background tasks to a distributed Celery queue.
+*   [ ] **BERT Classification:** Implement deep semantic analysis via HuggingFace transformers.
+*   [ ] **WebSockets:** Push live alert notifications to the dashboard without polling.
+
+---
+
+## 📜 License
+Distributed under the MIT License. See `LICENSE` for more information.
+
+<p align="center">Built with ❤️ for High-Performance Email Security</p>
