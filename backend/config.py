@@ -25,10 +25,13 @@ class Settings:
     @property
     def DATABASE_URL(self) -> str:
         # SQLAlchemy requires the driver to be specified for PostgreSQL.
-        # If the user provides 'postgresql://', we force 'postgresql+pg8000://'.
-        if self._database_url.startswith("postgresql://"):
-            return self._database_url.replace("postgresql://", "postgresql+pg8000://", 1)
-        return self._database_url
+        # Handle both 'postgresql://' and 'postgres://' (common in many cloud envs).
+        url = self._database_url
+        if url.startswith("postgres://"):
+            return url.replace("postgres://", "postgresql+pg8000://", 1)
+        elif url.startswith("postgresql://"):
+            return url.replace("postgresql://", "postgresql+pg8000://", 1)
+        return url
 
     # ── JWT Auth ─────────────────────────────────────────
     SECRET_KEY: str = os.getenv("SECRET_KEY", "")
