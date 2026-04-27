@@ -1,6 +1,6 @@
 """EmailRecord model — stores a single processed email."""
 
-from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, Text, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, Text, ForeignKey, Index
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from database import Base
@@ -8,6 +8,11 @@ from database import Base
 
 class EmailRecord(Base):
     __tablename__ = "emails"
+    __table_args__ = (
+        Index("ix_emails_ingested_at_category", "ingested_at", "category"),
+        Index("ix_emails_risk_score", "risk_score"),
+        Index("ix_emails_sender_domain_status", "sender_domain", "status"),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
 
