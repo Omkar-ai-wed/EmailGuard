@@ -89,32 +89,36 @@ def scan_attachment(filename: str, file_type: str = None) -> dict:
 
 
 def process_email_links(db: Session, email_id: int, urls: list[str]) -> list[Link]:
-    """Scan all URLs in an email and persist results."""
+    """Scan all URLs and bulk-insert in a single transaction."""
+    if not urls:
+        return []
     saved = []
     for url in urls:
         result = scan_url(url)
         link = Link(
             email_id=email_id,
-            url=url,
-            domain=result["domain"],
+            url=url[:2000],  # guard against oversized URLs
+            domain=result["domain"][:255],
             is_suspicious=result["is_suspicious"],
             is_phishing_url=result["is_phishing_url"],
             scan_result=result["scan_result"],
         )
         db.add(link)
         saved.append(link)
-    db.commit()
+    db.flush()  # send to DB in one batch, caller commits
     return saved
 
 
 def process_email_attachments(db: Session, email_id: int, attachments: list[dict]) -> list[Attachment]:
-    """Scan all attachments in an email and persist results."""
+    """Scan all attachments and bulk-insert in a single transaction."""
+    if not attachments:
+        return []
     saved = []
     for att in attachments:
         result = scan_attachment(att.get("filename", ""), att.get("file_type", ""))
         attachment = Attachment(
             email_id=email_id,
-            filename=att.get("filename", "unknown"),
+            filename=att.get("filename", "unknown")[:255],
             file_type=result["file_type"],
             file_size_bytes=att.get("file_size_bytes"),
             mime_type=att.get("mime_type"),
@@ -123,7 +127,7 @@ def process_email_attachments(db: Session, email_id: int, attachments: list[dict
         )
         db.add(attachment)
         saved.append(attachment)
-    db.commit()
+    db.flush()
     return saved
 
 
