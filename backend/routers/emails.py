@@ -44,14 +44,33 @@ def ingest_email(
     db.commit()
     db.refresh(email)
 
-    # Run full classification pipeline immediately (for demo simplicity)
-    classification_engine.run_classification_pipeline(
-        db=db,
-        email=email,
-        extra_links=data.links,
-        extra_attachments=data.attachments,
-        user_id=current_user.id,
-    )
+    # Schedule classification as a background task — returns immediately
+    email_id   = email.id
+    extra_links       = data.links
+    extra_attachments = data.attachments
+    user_id_val       = current_user.id
+
+    def _classify_in_background(eid: int, links, attachments, uid):
+        from database import SessionLocal
+        bg_db = SessionLocal()
+        try:
+            bg_email = bg_db.query(EmailRecord).filter(EmailRecord.id == eid).first()
+            if bg_email:
+                classification_engine.run_classification_pipeline(
+                    db=bg_db,
+                    email=bg_email,
+                    extra_links=links,
+                    extra_attachments=attachments,
+                    user_id=uid,
+                )
+        except Exception as exc:
+            import logging
+            logging.getLogger(__name__).exception("Background classification failed for email %d: %s", eid, exc)
+        finally:
+            bg_db.close()
+
+    background_tasks.add_task(_classify_in_background, email_id, extra_links, extra_attachments, user_id_val)
+
     db.refresh(email)
     return email
 
@@ -70,7 +89,7 @@ def list_emails(
     current_user: User = Depends(get_current_user),
 ):
     """List emails with optional filtering and pagination."""
-    q = db.query(EmailRecord)
+    q = db.query(EmailRecord).filter(EmailRecord.ingested_by_user_id == current_user.id)
 
     if category:
         q = q.filter(EmailRecord.category == category)
@@ -102,11 +121,18 @@ def search_emails(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Full-text search across subject and sender email."""
+    """Full-text search across subject and sender email (PostgreSQL)."""
+    from sqlalchemy import func, cast
+    from sqlalchemy.dialects.postgresql import TSVECTOR
+
+    search_query = func.plainto_tsquery("english", q)
     query = db.query(EmailRecord).filter(
-        EmailRecord.subject.ilike(f"%{q}%") |
-        EmailRecord.sender_email.ilike(f"%{q}%") |
-        EmailRecord.body_text.ilike(f"%{q}%")
+        EmailRecord.ingested_by_user_id == current_user.id,
+        func.to_tsvector("english",
+            func.coalesce(EmailRecord.subject, "") + " " +
+            func.coalesce(EmailRecord.sender_email, "") + " " +
+            func.coalesce(EmailRecord.body_text, "")
+        ).op("@@")(search_query)
     )
     total = query.count()
     emails = query.order_by(EmailRecord.ingested_at.desc()).offset((page - 1) * page_size).limit(page_size).all()
@@ -116,7 +142,10 @@ def search_emails(
 @router.get("/{email_id}", response_model=EmailDetailOut)
 def get_email(email_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Get full details for a single email."""
-    email = db.query(EmailRecord).filter(EmailRecord.id == email_id).first()
+    email = db.query(EmailRecord).filter(
+        EmailRecord.id == email_id,
+        EmailRecord.ingested_by_user_id == current_user.id
+    ).first()
     if not email:
         raise HTTPException(status_code=404, detail="Email not found.")
     return email
@@ -150,7 +179,9 @@ def delete_email(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Delete an email record (admin/analyst only)."""
+    """Delete an email record — admin only."""
+    if current_user.role not in ("admin",):
+        raise HTTPException(status_code=403, detail="Admin privileges required to delete emails.")
     email = db.query(EmailRecord).filter(EmailRecord.id == email_id).first()
     if not email:
         raise HTTPException(status_code=404, detail="Email not found.")
