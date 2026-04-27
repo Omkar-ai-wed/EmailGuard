@@ -25,12 +25,38 @@ class Settings:
     @property
     def DATABASE_URL(self) -> str:
         # SQLAlchemy requires the driver to be specified for PostgreSQL.
-        # Handle both 'postgresql://' and 'postgres://' (common in many cloud envs).
         url = self._database_url
+        
+        # 1. Normalize prefix
         if url.startswith("postgres://"):
-            return url.replace("postgres://", "postgresql+pg8000://", 1)
+            url = url.replace("postgres://", "postgresql+pg8000://", 1)
         elif url.startswith("postgresql://"):
-            return url.replace("postgresql://", "postgresql+pg8000://", 1)
+            url = url.replace("postgresql://", "postgresql+pg8000://", 1)
+            
+        # 2. Handle special characters in password (like '@')
+        # Supabase passwords often contain special chars. If not encoded, 
+        # the parser splits at the wrong '@'.
+        # We look for the last '@' which separates credentials from the host.
+        try:
+            if "@" in url:
+                # Split into [scheme://user:pass, host:port/db] based on LAST '@'
+                parts = url.rsplit("@", 1)
+                if len(parts) == 2:
+                    prefix, rest = parts
+                    # Find where credentials start (after //)
+                    if "://" in prefix:
+                        scheme_part, creds = prefix.split("://", 1)
+                        if ":" in creds:
+                            user, password = creds.split(":", 1)
+                            # Only encode if not already encoded (doesn't have %)
+                            if "%" not in password:
+                                from urllib.parse import quote_plus
+                                encoded_pass = quote_plus(password)
+                                return f"{scheme_part}://{user}:{encoded_pass}@{rest}"
+        except Exception:
+            # Fallback to original URL if parsing fails
+            pass
+            
         return url
 
     # ── JWT Auth ─────────────────────────────────────────
