@@ -7,6 +7,7 @@ from typing import List, Optional
 
 from database import get_db
 from models.alert import Alert
+from models.email import EmailRecord
 from schemas.classification import AlertOut
 from middleware.auth_middleware import get_current_user
 from models.user import User
@@ -24,7 +25,7 @@ def list_alerts(
     current_user: User = Depends(get_current_user),
 ):
     """List security alerts with optional filters."""
-    q = db.query(Alert)
+    q = db.query(Alert).join(EmailRecord).filter(EmailRecord.ingested_by_user_id == current_user.id)
     if severity:
         q = q.filter(Alert.severity == severity)
     if resolved is not None:
@@ -39,7 +40,10 @@ def get_alert(
     current_user: User = Depends(get_current_user),
 ):
     """Get a single alert by ID."""
-    alert = db.query(Alert).filter(Alert.id == alert_id).first()
+    alert = db.query(Alert).join(EmailRecord).filter(
+        Alert.id == alert_id,
+        EmailRecord.ingested_by_user_id == current_user.id
+    ).first()
     if not alert:
         raise HTTPException(status_code=404, detail="Alert not found.")
     return alert
@@ -52,7 +56,10 @@ def resolve_alert(
     current_user: User = Depends(get_current_user),
 ):
     """Mark an alert as resolved."""
-    alert = db.query(Alert).filter(Alert.id == alert_id).first()
+    alert = db.query(Alert).join(EmailRecord).filter(
+        Alert.id == alert_id,
+        EmailRecord.ingested_by_user_id == current_user.id
+    ).first()
     if not alert:
         raise HTTPException(status_code=404, detail="Alert not found.")
     alert.is_resolved = True
