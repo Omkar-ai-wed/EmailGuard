@@ -14,10 +14,11 @@ from config import settings
 
 engine = create_engine(
     settings.DATABASE_URL,
-    pool_pre_ping=True,
-    pool_recycle=300,       # Supabase pgBouncer drops idle conns after ~5 min
-    pool_size=5,
-    max_overflow=10,
+    connect_args={"check_same_thread": False} if settings.DATABASE_URL.startswith("sqlite") else {},
+    pool_pre_ping=True,    # Checks connection health before using it
+    pool_recycle=300,      # Closes connections older than 5 minutes to prevent staling
+    pool_size=5,           # Reasonable default for small apps
+    max_overflow=10,       # Allows temporary bursts
     echo=False,  # Never echo SQL in production; use application-level logging instead
 )
 

@@ -3,7 +3,7 @@
  * Centralized logic for Auth, API communication, and dynamic data loading.
  */
 
-const RENDER_URL = 'https://emailguard-api.onrender.com/api/v1';
+const RENDER_URL = 'https://emailguard-17.onrender.com/api/v1';
 const LOCAL_URL  = 'http://localhost:8000/api/v1';
 const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:' ? LOCAL_URL : RENDER_URL;
 
