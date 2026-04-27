@@ -1,7 +1,8 @@
 """Auth Router — /api/v1/auth"""
 
 from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
+from limiter_config import limiter
 from sqlalchemy.orm import Session
 
 from database import get_db
@@ -28,7 +29,8 @@ def register(data: UserRegister, db: Session = Depends(get_db)):
 
 
 @router.post("/login", response_model=TokenResponse)
-def login(data: UserLogin, db: Session = Depends(get_db)):
+@limiter.limit("10/minute")
+def login(request: Request, data: UserLogin, db: Session = Depends(get_db)):
     """Login and receive a JWT access token."""
     user = authenticate_user(db, data.username, data.password)
     if not user:
