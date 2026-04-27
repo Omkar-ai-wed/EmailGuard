@@ -18,7 +18,7 @@ engine = create_engine(
     pool_recycle=300,       # Supabase pgBouncer drops idle conns after ~5 min
     pool_size=5,
     max_overflow=10,
-    echo=settings.DEBUG,    # Logs all SQL queries in debug mode
+    echo=False,  # Never echo SQL in production; use application-level logging instead
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -28,9 +28,13 @@ Base = declarative_base()
 
 
 def get_db():
-    """FastAPI dependency: yields a DB session, always closes it after use."""
+    """FastAPI dependency: yields a DB session with proper rollback on error."""
     db = SessionLocal()
     try:
         yield db
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
     finally:
         db.close()
