@@ -9,15 +9,28 @@ from models.performance_metric import PerformanceMetric
 from datetime import datetime, timedelta
 
 
-def get_overview_stats(db: Session) -> dict:
-    """Summary counts for the overview dashboard cards."""
-    total = db.query(EmailRecord).count()
-    wanted = db.query(EmailRecord).filter(EmailRecord.category == "wanted").count()
-    unwanted = db.query(EmailRecord).filter(EmailRecord.category == "unwanted").count()
-    suspicious = db.query(EmailRecord).filter(EmailRecord.category == "suspicious").count()
-    phishing = db.query(EmailRecord).filter(EmailRecord.category == "phishing").count()
+def get_overview_stats(db: Session, user_id: int = None) -> dict:
+    """Summary counts — single query using conditional aggregation."""
+    from sqlalchemy import func, case
 
-    # Accuracy from latest metric snapshot
+    q = db.query(
+        func.count(EmailRecord.id).label("total"),
+        func.sum(case((EmailRecord.category == "wanted", 1), else_=0)).label("wanted"),
+        func.sum(case((EmailRecord.category == "unwanted", 1), else_=0)).label("unwanted"),
+        func.sum(case((EmailRecord.category == "suspicious", 1), else_=0)).label("suspicious"),
+        func.sum(case((EmailRecord.category == "phishing", 1), else_=0)).label("phishing"),
+    )
+    if user_id:
+        q = q.filter(EmailRecord.ingested_by_user_id == user_id)
+    
+    result = q.one()
+
+    total     = result.total or 0
+    wanted    = result.wanted or 0
+    unwanted  = result.unwanted or 0
+    suspicious= result.suspicious or 0
+    phishing  = result.phishing or 0
+
     latest_metric = (
         db.query(PerformanceMetric)
         .order_by(PerformanceMetric.recorded_at.desc())
@@ -25,7 +38,6 @@ def get_overview_stats(db: Session) -> dict:
     )
     accuracy = latest_metric.accuracy if latest_metric else 97.4
     if latest_metric:
-        # Denominator: total classified samples from the confusion matrix
         cm_total = (
             latest_metric.true_positives + latest_metric.false_positives +
             latest_metric.true_negatives + latest_metric.false_negatives
@@ -49,38 +61,60 @@ def get_overview_stats(db: Session) -> dict:
     }
 
 
-def get_spam_trend(db: Session, days: int = 7) -> list[dict]:
-    """Email counts by category for each of the last N days."""
-    results = []
+def get_spam_trend(db: Session, days: int = 7, user_id: int = None) -> list[dict]:
+    """Single GROUP BY DATE query instead of a loop of queries."""
+    from sqlalchemy import func, case, cast, Date
+    from datetime import datetime, timedelta
+
+    cutoff = datetime.utcnow() - timedelta(days=days)
+
+    q = (
+        db.query(
+            cast(EmailRecord.ingested_at, Date).label("day"),
+            func.sum(case((EmailRecord.category == "wanted", 1), else_=0)).label("wanted"),
+            func.sum(case((EmailRecord.category.in_(["unwanted", "phishing"]), 1), else_=0)).label("spam"),
+        )
+        .filter(EmailRecord.ingested_at >= cutoff)
+    )
+    if user_id:
+        q = q.filter(EmailRecord.ingested_by_user_id == user_id)
+        
+    rows = (
+        q.group_by(cast(EmailRecord.ingested_at, Date))
+        .order_by(cast(EmailRecord.ingested_at, Date))
+        .all()
+    )
+
+    # Build full date range (fill zeros for missing days)
     today = datetime.utcnow().date()
+    date_map = {str(r.day): {"wanted": r.wanted or 0, "spam": r.spam or 0} for r in rows}
+    result = []
     for i in range(days - 1, -1, -1):
-        day = today - timedelta(days=i)
-        day_start = datetime(day.year, day.month, day.day)
-        day_end = day_start + timedelta(days=1)
-
-        wanted = db.query(EmailRecord).filter(
-            EmailRecord.category == "wanted",
-            EmailRecord.ingested_at >= day_start,
-            EmailRecord.ingested_at < day_end,
-        ).count()
-
-        spam = db.query(EmailRecord).filter(
-            EmailRecord.category.in_(["unwanted", "phishing"]),
-            EmailRecord.ingested_at >= day_start,
-            EmailRecord.ingested_at < day_end,
-        ).count()
-
-        results.append({"date": str(day), "wanted": wanted, "spam": spam})
-    return results
+        day = str(today - timedelta(days=i))
+        result.append({"date": day, **date_map.get(day, {"wanted": 0, "spam": 0})})
+    return result
 
 
-def get_risk_distribution(db: Session) -> dict:
-    """Bucket emails by risk score range."""
-    low    = db.query(EmailRecord).filter(EmailRecord.risk_score < 30).count()
-    medium = db.query(EmailRecord).filter(EmailRecord.risk_score >= 30, EmailRecord.risk_score < 60).count()
-    high   = db.query(EmailRecord).filter(EmailRecord.risk_score >= 60, EmailRecord.risk_score < 80).count()
-    critical = db.query(EmailRecord).filter(EmailRecord.risk_score >= 80).count()
-    return {"low": low, "medium": medium, "high": high, "critical": critical}
+def get_risk_distribution(db: Session, user_id: int = None) -> dict:
+    """Single conditional aggregation query."""
+    from sqlalchemy import func, case
+
+    q = db.query(
+        func.sum(case((EmailRecord.risk_score < 30, 1), else_=0)).label("low"),
+        func.sum(case(((EmailRecord.risk_score >= 30) & (EmailRecord.risk_score < 60), 1), else_=0)).label("medium"),
+        func.sum(case(((EmailRecord.risk_score >= 60) & (EmailRecord.risk_score < 80), 1), else_=0)).label("high"),
+        func.sum(case((EmailRecord.risk_score >= 80, 1), else_=0)).label("critical"),
+    )
+    if user_id:
+        q = q.filter(EmailRecord.ingested_by_user_id == user_id)
+        
+    result = q.one()
+    return {
+        "low": result.low or 0,
+        "medium": result.medium or 0,
+        "high": result.high or 0,
+        "critical": result.critical or 0,
+    }
 
 
 def get_latest_performance_metrics(db: Session) -> PerformanceMetric | None:
