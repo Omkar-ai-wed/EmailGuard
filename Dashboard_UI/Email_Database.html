@@ -4,6 +4,12 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Email Database - EmailGuard</title>
+<link rel="icon" type="image/png" href="assets/logo.png">
+<meta name="description" content="EmailGuard - Advanced AI-powered email security and classification system.">
+<meta property="og:title" content="EmailGuard Dashboard">
+<meta property="og:description" content="Precision security for your inbox. Detect phishing, spam, and suspicious activities.">
+<meta property="og:image" content="assets/logo.png">
+<meta name="theme-color" content="#003fb1">
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
@@ -80,80 +86,247 @@
 <style>
         body { font-family: 'Inter', sans-serif; background-color: #faf8ff; color: #131b2e; }
         .bg-gradient-primary { background: linear-gradient(135deg, #003fb1 0%, #1a56db 100%); }
+
+        /* Mobile Nav Overrides */
+        @media (max-width: 1024px) {
+            .sidebar { transform: translateX(-100%); transition: transform 0.3s ease; }
+            .sidebar.active { transform: translateX(0); }
+            .main-content { margin-left: 0 !important; width: 100% !important; }
+            .header { left: 0 !important; width: 100% !important; padding-left: 1.5rem; padding-right: 1.5rem; }
+        }
     </style>
+<script src="dashboard_core.js"></script>
+<script>
+    const DEMO_EMAILS = [
+        {id:1, sender_email:'admin@secure-bank.com', subject:'Update your account details immediately', risk_score:95, category:'phishing', received_at: new Date().toISOString()},
+        {id:2, sender_email:'newsletter@designweekly.io', subject:'Top 10 UI Trends for 2024', risk_score:15, category:'wanted', received_at: new Date().toISOString()},
+        {id:3, sender_email:'support@unknown-vendor.net', subject:'Invoice #48291 attached', risk_score:68, category:'suspicious', received_at: new Date().toISOString()},
+        {id:4, sender_email:'winner@promo-scam.win', subject:'YOU WON $10,000!!! CLAIM NOW', risk_score:94, category:'unwanted', received_at: new Date().toISOString()},
+        {id:5, sender_email:'hr@company.org', subject:'Q3 Performance Review Schedule', risk_score:8, category:'wanted', received_at: new Date().toISOString()},
+    ];
+
+    async function loadStats() {
+        const isDemo = !EmailGuard.authToken;
+        const data = await EmailGuard.apiFetch('/analytics/overview');
+        
+        let stats;
+        if (isDemo) {
+            stats = {total_emails:24847, wanted_emails:14821, spam_detected:8293, phishing_blocked:1733};
+        } else {
+            stats = data || {total_emails:0, wanted_emails:0, spam_detected:0, phishing_blocked:0};
+        }
+        
+        document.getElementById('stat-total').textContent = EmailGuard.fmt(stats.total_emails);
+        document.getElementById('stat-wanted').textContent = EmailGuard.fmt(stats.wanted_emails);
+        document.getElementById('stat-spam').textContent = EmailGuard.fmt(stats.spam_detected);
+        document.getElementById('stat-suspicious').textContent = EmailGuard.fmt(stats.phishing_blocked);
+    }
+
+    function showToast(msg, type='primary') {
+        const toast = document.createElement('div');
+        toast.className = `fixed bottom-10 right-10 px-6 py-3 rounded-xl shadow-2xl z-[100] animate-in slide-in-from-right-4 transition-all bg-${type === 'error' ? 'error' : 'primary'} text-white font-bold text-sm`;
+        toast.textContent = msg;
+        document.body.appendChild(toast);
+        setTimeout(() => { toast.classList.add('opacity-0', 'translate-y-4'); setTimeout(() => toast.remove(), 500); }, 3000);
+    }
+
+    function checkAuthOrDemo(action) {
+        if (!EmailGuard.authToken) {
+            showToast(`Login required to ${action}`, 'error');
+            setTimeout(() => window.location.href = 'Login.html', 1500);
+            return false;
+        }
+        return true;
+    }
+
+    async function loadEmails() {
+        const isDemo = !EmailGuard.authToken;
+        const category = document.getElementById('filter-category').value;
+        const search = document.getElementById('search-input').value;
+        const url = `/emails/?page_size=10${category ? '&category='+category : ''}${search ? '&search='+search : ''}`;
+        
+        const data = await EmailGuard.apiFetch(url);
+        
+        let emails = [];
+        if (isDemo) {
+            emails = DEMO_EMAILS;
+        } else {
+            emails = (data && data.emails) ? data.emails : [];
+        }
+
+        const tbody = document.getElementById('email-table-body');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        
+        if (emails.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" class="py-20 text-center text-on-surface-variant">
+                <span class="material-symbols-outlined text-5xl mb-4 opacity-20">inventory_2</span>
+                <p class="font-bold text-lg">Your database is empty</p>
+                <p class="text-sm">Emails you analyze will appear here.</p>
+            </td></tr>`;
+            document.getElementById('record-count').textContent = `0 records`;
+            return;
+        }
+        
+        emails.forEach(email => {
+            const catClass = {
+                wanted: 'bg-primary/10 text-primary',
+                unwanted: 'bg-error/10 text-error',
+                suspicious: 'bg-tertiary/10 text-tertiary',
+                phishing: 'bg-error/10 text-error'
+            }[email.category] || 'bg-surface-container-high text-outline';
+            
+            const risk = Math.round(email.risk_score);
+            const riskColor = risk >= 60 ? 'text-error bg-error/10' : risk >= 30 ? 'text-tertiary bg-tertiary/10' : 'text-primary bg-primary/10';
+
+            tbody.innerHTML += `
+                <tr class="hover:bg-surface-container-low transition-colors border-b border-outline-variant/10">
+                    <td class="px-6 py-4 font-medium text-outline text-xs">#${email.id}</td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded bg-primary/10 flex items-center justify-center text-primary font-bold text-xs uppercase">${email.sender_email.substring(0,2)}</div>
+                            <span class="text-sm font-medium">${email.sender_email}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 truncate max-w-[250px] text-on-surface-variant text-sm">${email.subject || '(no subject)'}</td>
+                    <td class="px-6 py-4 text-on-surface-variant text-xs">${new Date(email.received_at).toLocaleDateString()}</td>
+                    <td class="px-6 py-4 text-center">
+                        <span class="inline-flex items-center justify-center w-9 h-9 rounded-full font-bold text-xs ${riskColor}">${risk}</span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="px-2.5 py-1 rounded-md text-xs font-bold uppercase ${catClass}">${email.category}</span>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <button onclick="comingSoon()" class="text-outline hover:text-primary transition-colors p-1"><span class="material-symbols-outlined text-sm">visibility</span></button>
+                        <button onclick="comingSoon()" class="text-outline hover:text-error transition-colors p-1"><span class="material-symbols-outlined text-sm">delete</span></button>
+                    </td>
+                </tr>
+            `;
+        });
+        
+        document.getElementById('record-count').textContent = `Showing ${emails.length} records`;
+        EmailGuard.updateConnectionStatus();
+    }
+
+    async function loadKeywords() {
+        const data = await EmailGuard.apiFetch('/analytics/top-keywords?limit=5');
+        const container = document.getElementById('keyword-list');
+        if (!container || !data) return;
+        container.innerHTML = '';
+        
+        data.forEach(kw => {
+            const colorClass = kw.category === 'spam' ? 'error' : 'tertiary';
+            const percent = Math.min(100, Math.round((kw.count / data[0].count) * 100));
+            container.innerHTML += `
+                <div>
+                    <div class="flex justify-between text-sm mb-1">
+                        <span class="font-bold text-${colorClass} uppercase tracking-tighter">${kw.keyword}</span>
+                        <span class="font-mono text-outline">${kw.count} hits</span>
+                    </div>
+                    <div class="w-full bg-surface-container-high h-1.5 rounded-full overflow-hidden">
+                        <div class="bg-${colorClass} h-full" style="width: ${percent}%"></div>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    function toggleMobileMenu() { document.querySelector('.sidebar').classList.toggle('active'); }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        loadStats();
+        loadEmails();
+        loadKeywords();
+    });
+</script>
 </head>
 <body class="flex min-h-screen bg-background text-on-background">
 <!-- SideNavBar -->
-<nav class="fixed left-0 top-0 h-full w-72 bg-inverse-surface text-inverse-primary shadow-2xl shadow-[#131b2e]/10 flex flex-col py-8 z-50">
-<div class="px-6 mb-12">
-<h1 class="text-2xl font-bold text-white tracking-tight">EmailGuard</h1>
-<p class="text-xs text-secondary-fixed-dim tracking-[0.05em] uppercase mt-1">Precision Guardian</p>
+<nav class="sidebar fixed left-0 top-0 h-screen w-72 bg-[#283044] flex flex-col p-6 gap-2 shadow-2xl shadow-[#131b2e]/20 z-50 transition-transform duration-300">
+<div class="flex items-center gap-4 mb-8 px-4">
+<div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center shrink-0 p-1">
+<img src="assets/logo.png" alt="EmailGuard Logo" class="w-full h-full object-contain">
 </div>
-<div class="flex-1 flex flex-col gap-2">
-<a class="flex items-center gap-4 px-6 py-3 text-surface-dim hover:text-white transition-colors hover:bg-white/5 duration-200 rounded-lg" href="Overview_Dashboard.html">
-<span class="material-symbols-outlined">dashboard</span>
-<span class="font-medium">Dashboard</span>
-</a>
-<a class="flex items-center gap-4 px-6 py-3 text-[#b5c4ff] bg-white/10 rounded-r-full font-bold" href="Email_Database.html">
-<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">database</span>
-<span>Email Database</span>
-</a>
-<a class="flex items-center gap-4 px-6 py-3 text-surface-dim hover:text-white transition-colors hover:bg-white/5 duration-200 rounded-lg" href="Rules_Keywords.html">
-<span class="material-symbols-outlined">rule</span>
-<span class="font-medium">Rules &amp; Keywords</span>
-</a>
-<a class="flex items-center gap-4 px-6 py-3 text-surface-dim hover:text-white transition-colors hover:bg-white/5 duration-200 rounded-lg" href="Model_Performance.html">
-<span class="material-symbols-outlined">analytics</span>
-<span class="font-medium">Model Performance</span>
-</a>
-<a class="flex items-center gap-4 px-6 py-3 text-surface-dim hover:text-white transition-colors hover:bg-white/5 duration-200 rounded-lg" href="Security_Alerts.html">
-<span class="material-symbols-outlined">shield</span>
-<span class="font-medium">Security Alerts</span>
-</a>
-</div>
-<div class="px-6 mt-auto">
-<div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl">
-<img alt="Analyst Avatar" class="w-10 h-10 rounded-full border border-white/10" data-alt="professional portrait of a cybersecurity analyst looking confident in a well-lit office environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDeHEWgXNn87jnZMS8xcbSVVtc5PTCeUZXkF93pZQQOCKj-OzibTVatkttaoPskTwxJUWN0thA5eGfDnpLAixagtMb-Q10wnk5BxzFCUsLdqKTxSIa0yCFvpa_ZvMGGq50oMqyxh9fTocKDITWAjsjqecVH_MogVmPBrcwMoj_so__CWVUmI2SH3XxcWC-hjXJ9_S_nhkszDl_3o8NV8lb3S1GjYoGHYxJW1l2ogYhKpkkoNgYXpaUslYpyrYOwnsct4hMq4HjHbPk"/>
 <div>
-<p class="text-sm font-semibold text-white">Analyst J. Doe</p>
-<p class="text-xs text-secondary-fixed-dim">Tier 2 SecOps</p>
+<h1 class="text-2xl font-bold text-white tracking-tight">EmailGuard</h1>
+<p class="text-xs text-secondary-fixed-dim font-medium tracking-wide uppercase">Precision Security</p>
 </div>
 </div>
+<div class="flex-1 space-y-1">
+<a class="text-slate-400 hover:text-white px-4 py-3 flex items-center gap-3 hover:bg-white/10 group font-semibold rounded-lg transition-all" href="Overview_Dashboard.html">
+<span class="material-symbols-outlined group-hover:text-white">dashboard</span>
+<span>Overview</span>
+</a>
+<a class="text-[#b5c4ff] bg-white/10 rounded-lg px-4 py-3 flex items-center gap-3 font-semibold transition-all" href="Email_Database.html">
+<span class="material-symbols-outlined text-white" style="font-variation-settings:'FILL' 1;">database</span>
+<span class="text-white">Email Database</span>
+</a>
+<a class="text-slate-400 hover:text-white px-4 py-3 flex items-center gap-3 hover:bg-white/10 group font-semibold rounded-lg transition-all" href="Rules_Keywords.html">
+<span class="material-symbols-outlined group-hover:text-white">rule</span>
+<span>Rules & Keywords</span>
+</a>
+<a class="text-slate-400 hover:text-white px-4 py-3 flex items-center gap-3 hover:bg-white/10 group font-semibold rounded-lg transition-all" href="Model_Performance.html">
+<span class="material-symbols-outlined group-hover:text-white">analytics</span>
+<span>Model Performance</span>
+</a>
+<a class="text-slate-400 hover:text-white px-4 py-3 flex items-center gap-3 hover:bg-white/10 group font-semibold rounded-lg transition-all" href="Security_Alerts.html">
+<span class="material-symbols-outlined group-hover:text-white">shield</span>
+<span>Security Alerts</span>
+</a>
+</div>
+<div class="mt-auto space-y-4">
+<button onclick="reportThreat()" class="w-full py-3 px-4 bg-gradient-to-r from-primary to-primary-container text-white rounded-xl font-bold text-sm tracking-wide shadow-lg hover:shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">report</span> Report Threat
+</button>
+<a onclick="comingSoon()" class="text-slate-400 hover:text-white px-4 py-3 flex items-center gap-3 transition-all scale-95 active:scale-90 duration-150 hover:bg-white/10 group Inter, label-md tracking-[0.05em] uppercase font-semibold cursor-pointer">
+<span class="material-symbols-outlined group-hover:text-white transition-colors">help_outline</span>
+<span class="group-hover:text-white transition-colors">Help Center</span>
+</a>
 </div>
 </nav>
-<!-- Main Content Canvas -->
-<main class="ml-72 flex-1 flex flex-col min-h-screen">
+
+<!-- Main Workspace Area -->
+<div class="main-content ml-72 flex-1 flex flex-col min-h-screen w-[calc(100%-18rem)]">
 <!-- TopAppBar -->
-<header class="fixed top-0 right-0 left-72 h-20 bg-surface-container-low flex justify-between items-center px-12 z-40">
+<header class="header fixed top-0 right-0 left-72 h-20 bg-background/80 backdrop-blur-xl border-b border-outline-variant/10 flex justify-between items-center px-10 z-40">
 <div class="flex items-center gap-4">
-<h2 class="font-['Inter'] font-semibold text-lg text-primary">Email Database</h2>
+<button onclick="toggleMobileMenu()" class="lg:hidden text-on-surface-variant p-2 -ml-2">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<div class="flex flex-col">
+<h2 class="font-bold text-[#131b2e] text-2xl tracking-tight">Email Database</h2>
+<div id="connection-status" class="flex items-center gap-1.5 mt-0.5">
+<span class="w-2 h-2 rounded-full bg-slate-400 animate-pulse"></span>
+<span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Checking Backend...</span>
+</div>
+</div>
 </div>
 <div class="flex items-center gap-6">
-<div class="relative group">
-<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
-<input class="pl-10 pr-4 py-2 bg-surface rounded-lg border-none text-sm w-64 focus:ring-2 focus:ring-primary/30 transition-all focus:bg-surface-container-lowest outline-none text-on-surface placeholder:text-outline-variant" placeholder="Global search..." type="text"/>
+<div class="relative group hidden md:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-sm">search</span>
+<input id="search-input" oninput="loadEmails()" class="pl-10 pr-4 py-2 bg-surface-container-low rounded-xl border-none text-sm w-64 focus:ring-2 focus:ring-primary/30 transition-all outline-none" placeholder="Search emails..." type="text"/>
 </div>
-<div class="flex gap-2 text-primary">
-<button class="p-2 hover:bg-surface-container-high rounded-lg transition-transform duration-200 ease-in-out">
-<span class="material-symbols-outlined">filter_list</span>
+<div class="flex items-center gap-3">
+<button onclick="comingSoon()" class="p-2 text-slate-500 hover:text-primary transition-colors rounded-full hover:bg-surface-container-high">
+<span class="material-symbols-outlined">notifications</span>
 </button>
-<button class="p-2 hover:bg-surface-container-high rounded-lg transition-transform duration-200 ease-in-out">
-<span class="material-symbols-outlined">download</span>
+<button onclick="logout()" class="p-2.5 text-on-surface-variant hover:text-error hover:bg-error/5 transition-colors rounded-xl group" title="Logout">
+<span class="material-symbols-outlined">logout</span>
 </button>
-<button class="p-2 hover:bg-surface-container-high rounded-lg transition-transform duration-200 ease-in-out">
-<span class="material-symbols-outlined">more_vert</span>
-</button>
+<div class="h-10 w-10 rounded-full bg-surface-container-high border-2 border-surface-container-highest overflow-hidden flex items-center justify-center">
+<img alt="User Avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC6XHeY3x5_ADyXS1QGyWNZJoSr0EK2sOTiPPzTgmR4ukHIe5fj7BKAlWhzNDdaBcMy81p3XSWAH_BCf5Lol_VQDMBpWnJwRlJP-IcDC5jXF2BhsiwcY9xIeKRbR7WFRh3qN4f2yv9x4Zd_i5ROHk7pBBoyerk_TV_03N4po9HkquJZYmftoXMSCNfOnpDsXQ_SQs95HdzDG1jdOuOeGBXP0d2YmJTmYSi0fN3bXpZ5FPAZ36xk9jBf7xanhNufaDg4zMeLLKXnwm8"/>
+</div>
 </div>
 </div>
 </header>
 <!-- Content Area -->
-<div class="pt-28 px-12 pb-12 flex-1 bg-background">
+<div class="pt-28 px-4 lg:px-12 pb-12 flex-1 bg-background">
 <!-- SECTION A: EMAIL DATABASE -->
 <!-- Stats Bento -->
-<div class="grid grid-cols-4 gap-6 mb-8">
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
 <div class="bg-surface-container-low rounded-xl p-6 relative overflow-hidden group hover:bg-surface-container-high transition-colors">
 <p class="text-label-sm font-semibold tracking-wider text-on-surface-variant uppercase mb-2">Total Records</p>
-<p class="text-4xl font-bold text-on-background">24,847</p>
+<p id="stat-total" class="text-4xl font-bold text-on-background">---</p>
 <div class="absolute -right-4 -bottom-4 opacity-10 group-hover:opacity-20 transition-opacity">
 <span class="material-symbols-outlined text-8xl text-primary">database</span>
 </div>
@@ -161,33 +334,31 @@
 <div class="bg-surface-container-low rounded-xl p-6 border-l-4 border-primary">
 <p class="text-label-sm font-semibold tracking-wider text-on-surface-variant uppercase mb-2">Wanted Emails</p>
 <div class="flex items-baseline gap-2">
-<p class="text-3xl font-bold text-primary">14,821</p>
-<span class="text-sm font-medium text-primary bg-primary/10 px-2 py-0.5 rounded">+12%</span>
+<p id="stat-wanted" class="text-3xl font-bold text-primary">---</p>
 </div>
 </div>
 <div class="bg-surface-container-low rounded-xl p-6 border-l-4 border-error">
 <p class="text-label-sm font-semibold tracking-wider text-on-surface-variant uppercase mb-2">Unwanted / Spam</p>
 <div class="flex items-baseline gap-2">
-<p class="text-3xl font-bold text-error">8,293</p>
-<span class="text-sm font-medium text-error bg-error/10 px-2 py-0.5 rounded">-4%</span>
+<p id="stat-spam" class="text-3xl font-bold text-error">---</p>
 </div>
 </div>
 <div class="bg-surface-container-low rounded-xl p-6 border-l-4 border-tertiary">
 <p class="text-label-sm font-semibold tracking-wider text-on-surface-variant uppercase mb-2">Suspicious</p>
 <div class="flex items-baseline gap-2">
-<p class="text-3xl font-bold text-tertiary">1,733</p>
+<p id="stat-suspicious" class="text-3xl font-bold text-tertiary">---</p>
 <span class="material-symbols-outlined text-tertiary text-sm ml-auto">warning</span>
 </div>
 </div>
 </div>
 <!-- Filters & Actions -->
 <div class="flex flex-wrap gap-4 items-center mb-6 p-4 bg-surface-container-low rounded-xl">
-<select class="bg-surface text-on-surface text-sm rounded-lg border-none focus:ring-2 focus:ring-primary/30 py-2 pl-4 pr-10">
-<option>Category: All</option>
-<option>Wanted</option>
-<option>Spam</option>
-<option>Suspicious</option>
-<option>Phishing</option>
+<select id="filter-category" onchange="loadEmails()" class="bg-surface text-on-surface text-sm rounded-lg border-none focus:ring-2 focus:ring-primary/30 py-2 pl-4 pr-10">
+<option value="">Category: All</option>
+<option value="wanted">Wanted</option>
+<option value="unwanted">Spam</option>
+<option value="suspicious">Suspicious</option>
+<option value="phishing">Phishing</option>
 </select>
 <select class="bg-surface text-on-surface text-sm rounded-lg border-none focus:ring-2 focus:ring-primary/30 py-2 pl-4 pr-10">
 <option>Date Range: Last 7 Days</option>
@@ -201,7 +372,7 @@
 <option>31-60 (Med)</option>
 <option>61-100 (High)</option>
 </select>
-<button class="ml-auto bg-gradient-primary text-on-primary px-6 py-2 rounded-lg text-sm font-semibold shadow-lg shadow-[#131b2e]/10 hover:opacity-90 transition-opacity flex items-center gap-2">
+<button onclick="comingSoon()" class="ml-auto bg-gradient-primary text-on-primary px-6 py-2 rounded-lg text-sm font-semibold shadow-lg shadow-[#131b2e]/10 hover:opacity-90 transition-opacity flex items-center gap-2">
 <span class="material-symbols-outlined text-sm">download</span>
                     Export CSV
                 </button>
@@ -220,96 +391,11 @@
 <th class="px-6 py-4 text-right">Actions</th>
 </tr>
 </thead>
-<tbody class="divide-y divide-surface-container-high/50 text-on-surface">
-<!-- Row 1 -->
-<tr class="hover:bg-surface-container-low transition-colors">
-<td class="px-6 py-4 font-medium text-outline">#9041</td>
-<td class="px-6 py-4">
-<div class="flex items-center gap-2">
-<div class="w-8 h-8 rounded bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">AM</div>
-<span>noreply@amazon.com</span>
-</div>
-</td>
-<td class="px-6 py-4 truncate max-w-[200px] text-on-surface-variant">Your order has been shipped.</td>
-<td class="px-6 py-4 text-on-surface-variant text-xs">Oct 24, 10:23 AM</td>
-<td class="px-6 py-4 text-center">
-<span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-bold text-xs">12</span>
-</td>
-<td class="px-6 py-4">
-<span class="px-2.5 py-1 rounded-md text-xs font-semibold bg-primary/10 text-primary">Wanted</span>
-</td>
-<td class="px-6 py-4 text-right">
-<button class="text-primary hover:text-primary-container p-1"><span class="material-symbols-outlined text-[20px]">visibility</span></button>
-</td>
-</tr>
-<!-- Row 2 -->
-<tr class="hover:bg-surface-container-low transition-colors bg-error/5">
-<td class="px-6 py-4 font-medium text-outline">#9042</td>
-<td class="px-6 py-4">
-<div class="flex items-center gap-2">
-<div class="w-8 h-8 rounded bg-error/10 flex items-center justify-center text-error font-bold text-xs">PR</div>
-<span class="text-error font-medium">winner@promo-scam.win</span>
-</div>
-</td>
-<td class="px-6 py-4 truncate max-w-[200px] text-on-surface-variant font-medium">YOU WON $10,000!!! CLAIM NOW</td>
-<td class="px-6 py-4 text-on-surface-variant text-xs">Oct 24, 09:41 AM</td>
-<td class="px-6 py-4 text-center">
-<span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-error text-on-error font-bold text-xs">94</span>
-</td>
-<td class="px-6 py-4">
-<span class="px-2.5 py-1 rounded-md text-xs font-semibold bg-error/10 text-error">Phishing</span>
-</td>
-<td class="px-6 py-4 text-right">
-<button class="text-outline hover:text-error p-1"><span class="material-symbols-outlined text-[20px]">block</span></button>
-</td>
-</tr>
-<!-- Row 3 -->
-<tr class="hover:bg-surface-container-low transition-colors">
-<td class="px-6 py-4 font-medium text-outline">#9043</td>
-<td class="px-6 py-4">
-<div class="flex items-center gap-2">
-<div class="w-8 h-8 rounded bg-surface-container-high flex items-center justify-center text-on-surface font-bold text-xs">UN</div>
-<span>newsletter@university.edu</span>
-</div>
-</td>
-<td class="px-6 py-4 truncate max-w-[200px] text-on-surface-variant">Weekly Campus Updates - Fall Semester</td>
-<td class="px-6 py-4 text-on-surface-variant text-xs">Oct 24, 08:15 AM</td>
-<td class="px-6 py-4 text-center">
-<span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-bold text-xs">05</span>
-</td>
-<td class="px-6 py-4">
-<span class="px-2.5 py-1 rounded-md text-xs font-semibold bg-primary/10 text-primary">Wanted</span>
-</td>
-<td class="px-6 py-4 text-right">
-<button class="text-primary hover:text-primary-container p-1"><span class="material-symbols-outlined text-[20px]">visibility</span></button>
-</td>
-</tr>
-<!-- Row 4 -->
-<tr class="hover:bg-surface-container-low transition-colors bg-tertiary/5">
-<td class="px-6 py-4 font-medium text-outline">#9044</td>
-<td class="px-6 py-4">
-<div class="flex items-center gap-2">
-<div class="w-8 h-8 rounded bg-tertiary/10 flex items-center justify-center text-tertiary font-bold text-xs">IN</div>
-<span>info@startup-verify.io</span>
-</div>
-</td>
-<td class="px-6 py-4 truncate max-w-[200px] text-on-surface-variant">Action Required: Verify Account</td>
-<td class="px-6 py-4 text-on-surface-variant text-xs">Oct 23, 11:20 PM</td>
-<td class="px-6 py-4 text-center">
-<span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-tertiary/20 text-tertiary font-bold text-xs">45</span>
-</td>
-<td class="px-6 py-4">
-<span class="px-2.5 py-1 rounded-md text-xs font-semibold bg-tertiary/10 text-tertiary">Suspicious</span>
-</td>
-<td class="px-6 py-4 text-right">
-<button class="text-primary hover:text-primary-container p-1"><span class="material-symbols-outlined text-[20px]">visibility</span></button>
-<button class="text-tertiary hover:text-tertiary-container p-1"><span class="material-symbols-outlined text-[20px]">verified_user</span></button>
-</td>
-</tr>
+<tbody id="email-table-body" class="divide-y divide-surface-container-high/50 text-on-surface">
 </tbody>
 </table>
 <div class="bg-surface-container-low p-4 flex justify-between items-center border-t border-surface-container-high/50">
-<span class="text-sm text-on-surface-variant">Showing 1 to 4 of 24,847 records</span>
+<span id="record-count" class="text-sm text-on-surface-variant">Loading records...</span>
 <div class="flex gap-1">
 <button class="px-3 py-1 text-sm rounded bg-surface text-outline hover:bg-surface-container-highest">Prev</button>
 <button class="px-3 py-1 text-sm rounded bg-primary text-on-primary font-medium">1</button>
@@ -322,7 +408,7 @@
 </div>
 </div>
 <!-- SECTION B: RULES & KEYWORDS -->
-<div class="grid grid-cols-3 gap-8">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
 <!-- Detection Rules Panel -->
 <div class="col-span-2 bg-surface-container-lowest rounded-xl shadow-2xl shadow-[#131b2e]/5 p-6">
 <div class="flex justify-between items-center mb-6">
@@ -365,48 +451,20 @@
 </div>
 </div>
 <!-- Keyword Heatmap -->
-<div class="col-span-1 bg-surface-container-lowest rounded-xl shadow-2xl shadow-[#131b2e]/5 p-6">
+<div class="lg:col-span-1 bg-surface-container-lowest rounded-xl shadow-2xl shadow-[#131b2e]/5 p-6">
 <h3 class="text-lg font-bold text-on-background mb-6">Top Spam Keywords</h3>
-<div class="flex flex-col gap-4">
-<div>
-<div class="flex justify-between text-sm mb-1">
-<span class="font-medium text-error">FREE</span>
-<span class="font-mono text-outline">2,847</span>
-</div>
-<div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
-<div class="bg-error h-full w-[85%]"></div>
-</div>
-</div>
-<div>
-<div class="flex justify-between text-sm mb-1">
-<span class="font-medium text-error">WINNER</span>
-<span class="font-mono text-outline">1,923</span>
-</div>
-<div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
-<div class="bg-error h-full w-[65%] opacity-90"></div>
-</div>
-</div>
-<div>
-<div class="flex justify-between text-sm mb-1">
-<span class="font-medium text-tertiary">URGENT</span>
-<span class="font-mono text-outline">942</span>
-</div>
-<div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
-<div class="bg-tertiary h-full w-[40%] opacity-80"></div>
-</div>
-</div>
-<div>
-<div class="flex justify-between text-sm mb-1">
-<span class="font-medium text-tertiary">Crypto</span>
-<span class="font-mono text-outline">612</span>
-</div>
-<div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
-<div class="bg-tertiary h-full w-[25%] opacity-60"></div>
-</div>
-</div>
+<div id="keyword-list" class="flex flex-col gap-4">
+    <p class="text-sm text-outline animate-pulse">Loading keywords...</p>
 </div>
 </div>
 </div>
 </div>
 </main>
+<script>
+    window.addEventListener('DOMContentLoaded', async () => {
+        EmailGuard.updateConnectionStatus();
+        await loadStats();
+        await loadEmails();
+    });
+</script>
 </body></html>
