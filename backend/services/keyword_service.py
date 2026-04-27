@@ -11,11 +11,31 @@ from models.keyword import Keyword
 logger = logging.getLogger(__name__)
 
 
+import time
+from threading import Lock
+
+_keyword_cache: list | None = None
+_keyword_cache_ts: float = 0.0
+_keyword_cache_ttl: float = 60.0  # seconds
+_keyword_cache_lock = Lock()
+
 def get_all_keywords(db: Session, active_only: bool = True) -> list[Keyword]:
-    q = db.query(Keyword)
-    if active_only:
-        q = q.filter(Keyword.is_active == True)
-    return q.all()
+    """Return keywords, refreshing from DB at most every 60 seconds."""
+    global _keyword_cache, _keyword_cache_ts
+    now = time.monotonic()
+    with _keyword_cache_lock:
+        if _keyword_cache is None or (now - _keyword_cache_ts) > _keyword_cache_ttl:
+            q = db.query(Keyword)
+            if active_only:
+                q = q.filter(Keyword.is_active == True)
+            _keyword_cache = q.all()
+            _keyword_cache_ts = now
+    return _keyword_cache
+
+def _invalidate_keyword_cache() -> None:
+    global _keyword_cache
+    with _keyword_cache_lock:
+        _keyword_cache = None
 
 
 def match_keywords(text: str, db: Session) -> dict:
@@ -33,36 +53,42 @@ def match_keywords(text: str, db: Session) -> dict:
     text_lower = text.lower()
 
     matched = []
+    matched_ids = []
     total_weight = 0.0
     top_rule = None
     top_weight = 0.0
 
     for kw in keywords:
-        # Simple whole-word / phrase match (case-insensitive)
         pattern = re.compile(r'\b' + re.escape(kw.keyword.lower()) + r'\b')
         if pattern.search(text_lower):
             matched.append(kw.keyword)
+            matched_ids.append(kw.id)
             total_weight += kw.weight
 
-            # Track highest-weight match
             if kw.weight > top_weight:
                 top_weight = kw.weight
                 top_rule = kw.keyword
 
-            # Increment hit counter
-            kw.hit_count += 1
-
-    db.commit()
-
-    # Normalise to 0–100 (cap at 100)
     keyword_score = min(total_weight * 10, 100.0)
 
     logger.debug("Keyword scan: matched=%s, score=%.1f", matched, keyword_score)
     return {
         "keyword_score": keyword_score,
         "matched_keywords": matched,
+        "matched_ids": matched_ids,
         "top_rule": top_rule,
     }
+
+def flush_keyword_hits(db: Session, keyword_ids: list[int]) -> None:
+    """Atomically increment hit counts for matched keywords. Call after outer commit."""
+    if not keyword_ids:
+        return
+    from models.keyword import Keyword
+    db.query(Keyword).filter(Keyword.id.in_(keyword_ids)).update(
+        {Keyword.hit_count: Keyword.hit_count + 1},
+        synchronize_session=False,
+    )
+    # Caller is responsible for commit
 
 
 # ── CRUD helpers ──────────────────────────────────────────────────────────────
@@ -72,6 +98,7 @@ def create_keyword(db: Session, keyword: str, weight: float, category_tag: str) 
     db.add(kw)
     db.commit()
     db.refresh(kw)
+    _invalidate_keyword_cache()
     return kw
 
 
@@ -84,6 +111,7 @@ def update_keyword(db: Session, kw_id: int, **kwargs) -> Keyword | None:
             setattr(kw, field, value)
     db.commit()
     db.refresh(kw)
+    _invalidate_keyword_cache()
     return kw
 
 
@@ -93,6 +121,7 @@ def delete_keyword(db: Session, kw_id: int) -> bool:
         return False
     db.delete(kw)
     db.commit()
+    _invalidate_keyword_cache()
     return True
 
 
