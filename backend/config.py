@@ -14,7 +14,7 @@ class Settings:
     # ── App ──────────────────────────────────────────────
     APP_NAME: str = "EmailGuard"
     APP_VERSION: str = "1.0.0"
-    DEBUG: bool = os.getenv("DEBUG", "true").lower() == "true"
+    DEBUG: bool = os.getenv("DEBUG", "false").lower() == "true"
 
     # ── Database ─────────────────────────────────────────
     # Supabase (PostgreSQL) via pg8000 driver (pure Python, no compiler needed).
@@ -23,7 +23,7 @@ class Settings:
     DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql+pg8000://postgres:password@localhost:5432/emailguard")
 
     # ── JWT Auth ─────────────────────────────────────────
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "emailguard-super-secret-key-2024-change-in-prod")
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "")
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 hours
 
@@ -38,3 +38,17 @@ class Settings:
 
 
 settings = Settings()
+
+import sys
+
+def _validate_settings(s: "Settings") -> None:
+    if not s.SECRET_KEY:
+        print("FATAL: SECRET_KEY environment variable is not set. Refusing to start.", file=sys.stderr)
+        sys.exit(1)
+    if len(s.SECRET_KEY) < 32:
+        print("FATAL: SECRET_KEY must be at least 32 characters.", file=sys.stderr)
+        sys.exit(1)
+    if not s.DEBUG and s.DATABASE_URL.startswith("sqlite"):
+        print("WARNING: Using SQLite in non-debug mode. Set DATABASE_URL to PostgreSQL.", file=sys.stderr)
+
+_validate_settings(settings)
