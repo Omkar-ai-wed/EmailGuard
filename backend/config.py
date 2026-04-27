@@ -1,7 +1,7 @@
 """
 EmailGuard — Application Configuration
 Loads settings from environment variables or .env file.
-Database: Supabase (PostgreSQL) via psycopg2 driver.
+Database: Supabase (PostgreSQL) via pg8000 driver.
 """
 
 import os
@@ -20,7 +20,15 @@ class Settings:
     # Supabase (PostgreSQL) via pg8000 driver (pure Python, no compiler needed).
     # Format: postgresql+pg8000://postgres.<project-ref>:<password>@aws-0-<region>.pooler.supabase.com:6543/postgres
     # Get your connection string from: Supabase Dashboard → Settings → Database → Connection String → URI
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql+pg8000://postgres:password@localhost:5432/emailguard")
+    _database_url: str = os.getenv("DATABASE_URL", "postgresql+pg8000://postgres:password@localhost:5432/emailguard")
+    
+    @property
+    def DATABASE_URL(self) -> str:
+        # SQLAlchemy requires the driver to be specified for PostgreSQL.
+        # If the user provides 'postgresql://', we force 'postgresql+pg8000://'.
+        if self._database_url.startswith("postgresql://"):
+            return self._database_url.replace("postgresql://", "postgresql+pg8000://", 1)
+        return self._database_url
 
     # ── JWT Auth ─────────────────────────────────────────
     SECRET_KEY: str = os.getenv("SECRET_KEY", "")

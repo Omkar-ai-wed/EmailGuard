@@ -1,7 +1,7 @@
 """
 EmailGuard — Database Setup
 SQLAlchemy engine, session factory, and Base class.
-Connects to Supabase (PostgreSQL) via psycopg2 driver.
+Connects to Supabase (PostgreSQL) via pg8000 driver.
 """
 
 from sqlalchemy import create_engine
