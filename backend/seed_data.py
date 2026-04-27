@@ -31,7 +31,7 @@ db = SessionLocal()
 
 
 def seed_users():
-    print("→ Seeding users…")
+    print("-> Seeding users...")
     users = [
         {"username": "admin",   "email": "admin@emailguard.local",   "password": "admin123",   "role": "admin"},
         {"username": "analyst", "email": "analyst@emailguard.local",  "password": "analyst123", "role": "analyst"},
@@ -46,11 +46,11 @@ def seed_users():
                 role=u["role"],
             ))
     db.commit()
-    print("  ✓ 3 users created (admin / analyst / viewer)")
+    print("  [OK] 3 users created (admin / analyst / viewer)")
 
 
 def seed_keywords():
-    print("→ Seeding keywords…")
+    print("-> Seeding keywords...")
     keywords = [
         ("free", 8.0, "spam"),        ("winner", 9.0, "spam"),
         ("urgent", 7.0, "spam"),       ("click here", 8.5, "spam"),
@@ -68,11 +68,11 @@ def seed_keywords():
         if not db.query(Keyword).filter(Keyword.keyword == kw).first():
             db.add(Keyword(keyword=kw, weight=weight, category_tag=tag))
     db.commit()
-    print(f"  ✓ {len(keywords)} keywords seeded")
+    print(f"  [OK] {len(keywords)} keywords seeded")
 
 
 def seed_reputation():
-    print("→ Seeding sender reputation…")
+    print("-> Seeding sender reputation...")
     domains = [
         ("amazon.com",       9.8, "trusted",    False),
         ("gmail.com",        9.5, "trusted",    False),
@@ -98,11 +98,11 @@ def seed_reputation():
                 spam_count=random.randint(0, 50) if cat != "trusted" else 0,
             ))
     db.commit()
-    print(f"  ✓ {len(domains)} domain reputations seeded")
+    print(f"  [OK] {len(domains)} domain reputations seeded")
 
 
 def seed_performance_metrics():
-    print("→ Seeding performance metrics…")
+    print("-> Seeding performance metrics...")
     if db.query(PerformanceMetric).count() == 0:
         db.add(PerformanceMetric(
             model_version="1.0.0",
@@ -118,13 +118,13 @@ def seed_performance_metrics():
             training_samples=50000,
         ))
         db.commit()
-        print("  ✓ Performance metrics snapshot added")
+        print("  [OK] Performance metrics snapshot added")
 
 
 def seed_sample_emails():
-    print("→ Seeding sample emails (this may take a moment)…")
+    print("-> Seeding sample emails (this may take a moment)...")
     if db.query(EmailRecord).count() > 0:
-        print("  ⚠ Emails already exist, skipping")
+        print("  [SKIP] Emails already exist, skipping")
         return
 
     admin_user = db.query(User).filter(User.username == "admin").first()
@@ -179,12 +179,12 @@ def seed_sample_emails():
         # Run the classification pipeline on each seeded email
         run_classification_pipeline(db, email, user_id=admin_user.id if admin_user else None)
 
-    print(f"  ✓ {len(samples)} sample emails seeded and classified")
+    print(f"  [OK] {len(samples)} sample emails seeded and classified")
 
 
 def seed_alerts():
     """Add a few manual alerts for the demo dashboard."""
-    print("→ Seeding additional alerts…")
+    print("-> Seeding additional alerts...")
     existing = db.query(Alert).count()
     if existing < 3:
         db.add(Alert(
@@ -202,20 +202,20 @@ def seed_alerts():
             is_resolved=False,
         ))
         db.commit()
-        print("  ✓ Additional alerts added")
+        print("  [OK] Additional alerts added")
 
 
 if __name__ == "__main__":
-    print("\n🌱 EmailGuard Seed Script")
+    print("\n[SEED] EmailGuard Seed Script")
     print("=" * 40)
     seed_users()
     seed_keywords()
     seed_reputation()
     seed_performance_metrics()
-    seed_sample_emails()
-    seed_alerts()
+    # seed_sample_emails()
+    # seed_alerts()
     db.close()
-    print("\n✅ Database seeded successfully!")
+    print("\n[OK] Database seeded successfully!")
     print("\n📌 Login credentials:")
     print("  admin   / admin123   (full access)")
     print("  analyst / analyst123 (classify & view)")
