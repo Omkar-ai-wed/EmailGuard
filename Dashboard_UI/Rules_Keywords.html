@@ -3,6 +3,12 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Rules &amp; Keywords - EmailGuard</title>
+<link rel="icon" type="image/png" href="assets/logo.png">
+<meta name="description" content="EmailGuard - Advanced AI-powered email security and classification system.">
+<meta property="og:title" content="EmailGuard Dashboard">
+<meta property="og:description" content="Precision security for your inbox. Detect phishing, spam, and suspicious activities.">
+<meta property="og:image" content="assets/logo.png">
+<meta name="theme-color" content="#003fb1">
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
@@ -44,94 +50,237 @@
   .toggle-unchecked { background-color:#c3c5d7; }
   .modal-backdrop { display:none; position:fixed; inset:0; background:rgba(19,27,46,0.4); z-index:100; align-items:center; justify-content:center; }
   .modal-backdrop.open { display:flex; }
+  
+  /* Mobile Nav Overrides */
+  @media (max-width: 1024px) {
+      .sidebar { transform: translateX(-100%); transition: transform 0.3s ease; }
+      .sidebar.active { transform: translateX(0); }
+      .main-content { margin-left: 0 !important; width: 100% !important; }
+      .header { left: 0 !important; width: 100% !important; padding-left: 1.5rem; padding-right: 1.5rem; }
+  }
 </style>
+<script src="dashboard_core.js"></script>
+<script>
+    const DEMO_KEYWORDS = [
+      {keyword: 'FREE', weight: 8.5, category_tag: 'spam', hits: 2847},
+      {keyword: 'WINNER', weight: 9.0, category_tag: 'spam', hits: 1923},
+      {keyword: 'Bank Verify', weight: 9.5, category_tag: 'phishing', hits: 842},
+      {keyword: 'Investment', weight: 4.2, category_tag: 'promo', hits: 612},
+    ];
+
+    async function loadKeywords() {
+        const isDemo = !EmailGuard.authToken;
+        const data = await EmailGuard.apiFetch('/analytics/top-keywords?limit=20');
+        const keywords = (data && !isDemo) ? data.map(k => ({...k, category_tag: k.category, hits: k.count})) : (isDemo ? DEMO_KEYWORDS : []);
+        
+        const container = document.getElementById('keyword-grid');
+        if (!container) return;
+        container.innerHTML = '';
+        
+        if (keywords.length === 0) {
+            container.innerHTML = `<div class="col-span-full text-center py-20 text-on-surface-variant">
+                <span class="material-symbols-outlined text-5xl mb-4 opacity-20">key_off</span>
+                <p class="font-bold text-lg">No keywords detected yet</p>
+                <p class="text-sm">Keywords from analyzed emails will appear here.</p>
+            </div>`;
+            return;
+        }
+        
+        keywords.forEach(kw => {
+            const colorClass = kw.category_tag === 'spam' ? 'error' : kw.category_tag === 'phishing' ? 'tertiary' : 'primary';
+            container.innerHTML += `
+                <div class="p-4 bg-surface-container-lowest rounded-xl border border-outline-variant/15 shadow-sm group hover:border-${colorClass}/30 transition-all">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs font-bold text-outline uppercase tracking-widest">${kw.category_tag}</span>
+                        <span class="text-xs font-mono text-outline">${kw.hits || 0} hits</span>
+                    </div>
+                    <p class="text-lg font-bold text-on-background group-hover:text-${colorClass} transition-colors">${kw.keyword}</p>
+                    <div class="flex justify-between items-center mt-3 pt-3 border-t border-outline-variant/5">
+                        <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-tighter">Weight: ${kw.weight.toFixed(1)}</span>
+                        <button onclick="deleteKeyword('${kw.keyword}')" class="text-outline hover:text-error transition-colors"><span class="material-symbols-outlined text-sm">delete</span></button>
+                    </div>
+                </div>
+            `;
+        });
+        EmailGuard.updateConnectionStatus();
+    }
+
+    async function addKeyword(event) {
+        event.preventDefault();
+        if (!checkAuthOrDemo('add keywords')) return;
+        
+        const keyword = document.getElementById('new-keyword').value;
+        const weight = document.getElementById('new-weight').value;
+        const category = document.getElementById('new-category').value;
+        
+        const result = await EmailGuard.apiFetch('/keywords', {
+            method: 'POST',
+            body: JSON.stringify({ keyword, weight: parseFloat(weight), category_tag: category })
+        });
+        
+        if (result) {
+            closeModal('keyword-modal');
+            loadKeywords();
+            showToast('Keyword added successfully!');
+        }
+    }
+
+    function showToast(msg, type='primary') {
+        const toast = document.createElement('div');
+        toast.className = `fixed bottom-10 right-10 px-6 py-3 rounded-xl shadow-2xl z-[100] animate-in slide-in-from-right-4 transition-all bg-${type === 'error' ? 'error' : 'primary'} text-white font-bold text-sm`;
+        toast.textContent = msg;
+        document.body.appendChild(toast);
+        setTimeout(() => { toast.classList.add('opacity-0', 'translate-y-4'); setTimeout(() => toast.remove(), 500); }, 3000);
+    }
+
+    function checkAuthOrDemo(action) {
+        if (!EmailGuard.authToken) {
+            showToast(`Login required to ${action}`, 'error');
+            setTimeout(() => window.location.href = 'Login.html', 1500);
+            return false;
+        }
+        return true;
+    }
+
+    function reportThreat() {
+        showToast('Scanning global database for similar patterns...', 'primary');
+        setTimeout(() => showToast('Threat report submitted to admin.', 'primary'), 1000);
+    }
+
+    function deleteKeyword(kw) {
+        if (!checkAuthOrDemo('delete keywords')) return;
+        showToast(`Keyword "${kw}" removed.`, 'primary');
+    }
+
+    function logout() { EmailGuard.logout(); }
+    function openModal(id) { document.getElementById(id).classList.add('open'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+    function toggleMobileMenu() { document.querySelector('.sidebar').classList.toggle('active'); }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        loadKeywords();
+        EmailGuard.updateConnectionStatus();
+    });
+</script>
 </head>
 <body class="bg-background text-on-background min-h-screen flex">
 
 <!-- SideNavBar -->
-<nav class="fixed left-0 top-0 h-screen w-72 bg-[#283044] flex flex-col p-6 gap-2 shadow-2xl shadow-[#131b2e]/20 z-50">
-  <div class="flex items-center gap-4 mb-8 px-4">
-    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary-container flex items-center justify-center shrink-0">
-      <span class="material-symbols-outlined text-white" style="font-variation-settings:'FILL' 1;">security</span>
-    </div>
-    <div>
-      <h1 class="text-2xl font-bold text-white tracking-tight">EmailGuard</h1>
-      <p class="text-xs text-secondary-fixed-dim font-medium tracking-wide uppercase">Precision Security</p>
-    </div>
-  </div>
-  <div class="flex-1 space-y-1">
-    <a class="text-slate-400 hover:text-white px-4 py-3 flex items-center gap-3 hover:bg-white/10 group font-semibold rounded-lg" href="Overview_Dashboard.html">
-      <span class="material-symbols-outlined group-hover:text-white">dashboard</span>
-      <span class="group-hover:text-white">Overview</span>
-    </a>
-    <a class="text-slate-400 hover:text-white px-4 py-3 flex items-center gap-3 hover:bg-white/10 group font-semibold rounded-lg" href="Email_Database.html">
-      <span class="material-symbols-outlined group-hover:text-white">database</span>
-      <span class="group-hover:text-white">Email Database</span>
-    </a>
-    <a class="text-[#b5c4ff] bg-white/10 rounded-lg px-4 py-3 flex items-center gap-3 font-semibold" href="Rules_Keywords.html">
-      <span class="material-symbols-outlined text-white" style="font-variation-settings:'FILL' 1;">rule</span>
-      <span class="text-white">Rules &amp; Keywords</span>
-    </a>
-    <a class="text-slate-400 hover:text-white px-4 py-3 flex items-center gap-3 hover:bg-white/10 group font-semibold rounded-lg" href="Model_Performance.html">
-      <span class="material-symbols-outlined group-hover:text-white">analytics</span>
-      <span class="group-hover:text-white">Model Performance</span>
-    </a>
-    <a class="text-slate-400 hover:text-white px-4 py-3 flex items-center gap-3 hover:bg-white/10 group font-semibold rounded-lg" href="Security_Alerts.html">
-      <span class="material-symbols-outlined group-hover:text-white">shield</span>
-      <span class="group-hover:text-white">Security Alerts</span>
-    </a>
-  </div>
-  <div class="mt-auto">
-    <button class="w-full py-3 px-4 bg-gradient-to-r from-primary to-primary-container text-white rounded-xl font-bold text-sm tracking-wide shadow-lg hover:shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2">
-      <span class="material-symbols-outlined text-sm">report</span> Report Threat
-    </button>
-  </div>
+<nav class="sidebar fixed left-0 top-0 h-screen w-72 bg-[#283044] flex flex-col p-6 gap-2 shadow-2xl shadow-[#131b2e]/20 z-50 transition-transform duration-300">
+<div class="flex items-center gap-4 mb-8 px-4">
+<div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center shrink-0 p-1">
+<img src="assets/logo.png" alt="EmailGuard Logo" class="w-full h-full object-contain">
+</div>
+<div>
+<h1 class="text-2xl font-bold text-white tracking-tight">EmailGuard</h1>
+<p class="text-xs text-secondary-fixed-dim font-medium tracking-wide uppercase">Precision Security</p>
+</div>
+</div>
+<div class="flex-1 space-y-1">
+<a class="text-slate-400 hover:text-white px-4 py-3 flex items-center gap-3 hover:bg-white/10 group font-semibold rounded-lg transition-all" href="Overview_Dashboard.html">
+<span class="material-symbols-outlined group-hover:text-white">dashboard</span>
+<span>Overview</span>
+</a>
+<a class="text-slate-400 hover:text-white px-4 py-3 flex items-center gap-3 hover:bg-white/10 group font-semibold rounded-lg transition-all" href="Email_Database.html">
+<span class="material-symbols-outlined group-hover:text-white">database</span>
+<span>Email Database</span>
+</a>
+<a class="text-[#b5c4ff] bg-white/10 rounded-lg px-4 py-3 flex items-center gap-3 font-semibold transition-all" href="Rules_Keywords.html">
+<span class="material-symbols-outlined text-white" style="font-variation-settings:'FILL' 1;">rule</span>
+<span class="text-white">Rules & Keywords</span>
+</a>
+<a class="text-slate-400 hover:text-white px-4 py-3 flex items-center gap-3 hover:bg-white/10 group font-semibold rounded-lg transition-all" href="Model_Performance.html">
+<span class="material-symbols-outlined group-hover:text-white">analytics</span>
+<span>Model Performance</span>
+</a>
+<a class="text-slate-400 hover:text-white px-4 py-3 flex items-center gap-3 hover:bg-white/10 group font-semibold rounded-lg transition-all" href="Security_Alerts.html">
+<span class="material-symbols-outlined group-hover:text-white">shield</span>
+<span>Security Alerts</span>
+</a>
+</div>
+<div class="mt-auto space-y-4">
+<button onclick="reportThreat()" class="w-full py-3 px-4 bg-gradient-to-r from-primary to-primary-container text-white rounded-xl font-bold text-sm tracking-wide shadow-lg hover:shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">report</span> Report Threat
+</button>
+<a onclick="comingSoon()" class="text-slate-400 hover:text-white px-4 py-3 flex items-center gap-3 transition-all scale-95 active:scale-90 duration-150 hover:bg-white/10 group Inter, label-md tracking-[0.05em] uppercase font-semibold cursor-pointer">
+<span class="material-symbols-outlined group-hover:text-white transition-colors">help_outline</span>
+<span class="group-hover:text-white transition-colors">Help Center</span>
+</a>
+</div>
 </nav>
 
-<!-- Main Content -->
-<div class="ml-72 flex-1 flex flex-col min-h-screen">
-  <header class="fixed top-0 right-0 left-72 h-20 bg-[#faf8ff]/80 backdrop-blur-xl flex justify-between items-center px-10 z-40" style="box-shadow:0 12px 40px rgba(19,27,46,0.04);">
-    <div class="flex items-center gap-4">
-      <h2 class="font-bold text-[#131b2e] text-2xl tracking-tight">Rules &amp; Keywords</h2>
-    </div>
-    <div class="flex items-center gap-4">
-      <button onclick="document.getElementById('new-rule-modal').classList.add('open')" class="px-5 py-2.5 bg-gradient-to-r from-primary to-primary-container text-white rounded-xl font-bold text-sm shadow-lg hover:shadow-xl transition-all active:scale-95 flex items-center gap-2">
-        <span class="material-symbols-outlined text-sm">add</span> New Rule
-      </button>
-    </div>
-  </header>
+<!-- Main Workspace Area -->
+<div class="main-content ml-72 flex-1 flex flex-col min-h-screen w-[calc(100%-18rem)]">
+<!-- TopAppBar -->
+<header class="header fixed top-0 right-0 left-72 h-20 bg-background/80 backdrop-blur-xl border-b border-outline-variant/10 flex justify-between items-center px-10 z-40">
+<div class="flex items-center gap-4">
+<button onclick="toggleMobileMenu()" class="lg:hidden text-on-surface-variant p-2 -ml-2">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<div class="flex flex-col">
+<h2 class="font-bold text-[#131b2e] text-2xl tracking-tight">Rules & Keywords</h2>
+<div id="connection-status" class="flex items-center gap-1.5 mt-0.5">
+<span class="w-2 h-2 rounded-full bg-slate-400 animate-pulse"></span>
+<span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Checking Backend...</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative group hidden md:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-sm">search</span>
+<input id="search-alerts" class="pl-10 pr-4 py-2 bg-surface-container-low rounded-xl border-none text-sm w-64 focus:ring-2 focus:ring-primary/30 transition-all outline-none" placeholder="Search alerts..." type="text"/>
+</div>
+<div class="flex items-center gap-3">
+<button onclick="loadAlerts()" class="p-2 text-slate-500 hover:text-primary transition-colors rounded-full hover:bg-surface-container-high">
+<span class="material-symbols-outlined">refresh</span>
+</button>
+<button onclick="logout()" class="p-2.5 text-on-surface-variant hover:text-error hover:bg-error/5 transition-colors rounded-xl group" title="Logout">
+<span class="material-symbols-outlined">logout</span>
+</button>
+<div class="h-10 w-10 rounded-full bg-surface-container-high border-2 border-surface-container-highest overflow-hidden flex items-center justify-center">
+<img alt="User Avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC6XHeY3x5_ADyXS1QGyWNZJoSr0EK2sOTiPPzTgmR4ukHIe5fj7BKAlWhzNDdaBcMy81p3XSWAH_BCf5Lol_VQDMBpWnJwRlJP-IcDC5jXF2BhsiwcY9xIeKRbR7WFRh3qN4f2yv9x4Zd_i5ROHk7pBBoyerk_TV_03N4po9HkquJZYmftoXMSCNfOnpDsXQ_SQs95HdzDG1jdOuOeGBXP0d2YmJTmYSi0fN3bXpZ5FPAZ36xk9jBf7xanhNufaDg4zMeLLKXnwm8"/>
+</div>
+</div>
+</div>
+</header>
 
-  <main class="flex-1 pt-28 px-10 pb-16">
-    <div class="max-w-6xl mx-auto space-y-10">
+<main class="flex-1 pt-28 px-4 lg:px-10 pb-16">
+<div class="max-w-6xl mx-auto space-y-10">
+    <div class="flex justify-between items-center">
+        <h3 class="text-xl font-bold text-on-background">Rule Configuration</h3>
+        <button onclick="document.getElementById('new-rule-modal').classList.add('open')" class="px-5 py-2.5 bg-gradient-to-r from-primary to-primary-container text-white rounded-xl font-bold text-sm shadow-lg hover:shadow-xl transition-all active:scale-95 flex items-center gap-2">
+            <span class="material-symbols-outlined text-sm">add</span> New Rule
+        </button>
+    </div>
 
       <!-- Stats -->
-      <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="bg-surface-container-lowest rounded-xl p-5 shadow-ambient border border-outline-variant/15 flex items-center gap-4">
-          <span class="material-symbols-outlined text-primary bg-primary/10 p-2 rounded-lg" style="font-variation-settings:'FILL' 1;">rule</span>
-          <div>
-            <div class="text-2xl font-extrabold text-on-background">12</div>
-            <div class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Active Rules</div>
+      <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="bg-surface-container-lowest rounded-xl p-5 shadow-ambient border border-outline-variant/15 flex items-center gap-4 min-w-0">
+          <span class="material-symbols-outlined text-primary bg-primary/10 p-3 rounded-xl shrink-0" style="font-variation-settings:'FILL' 1;">rule</span>
+          <div class="min-w-0 overflow-hidden">
+            <div class="text-2xl font-extrabold text-on-background truncate">12</div>
+            <div class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest truncate">Active Rules</div>
           </div>
         </div>
-        <div class="bg-surface-container-lowest rounded-xl p-5 shadow-ambient border border-outline-variant/15 flex items-center gap-4">
-          <span class="material-symbols-outlined text-error bg-error/10 p-2 rounded-lg" style="font-variation-settings:'FILL' 1;">key</span>
-          <div>
-            <div class="text-2xl font-extrabold text-on-background">247</div>
-            <div class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Keywords</div>
+        <div class="bg-surface-container-lowest rounded-xl p-5 shadow-ambient border border-outline-variant/15 flex items-center gap-4 min-w-0">
+          <span class="material-symbols-outlined text-error bg-error/10 p-3 rounded-xl shrink-0" style="font-variation-settings:'FILL' 1;">key</span>
+          <div class="min-w-0 overflow-hidden">
+            <div class="text-2xl font-extrabold text-on-background truncate">247</div>
+            <div class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest truncate">Keywords</div>
           </div>
         </div>
-        <div class="bg-surface-container-lowest rounded-xl p-5 shadow-ambient border border-outline-variant/15 flex items-center gap-4">
-          <span class="material-symbols-outlined text-tertiary bg-tertiary/10 p-2 rounded-lg" style="font-variation-settings:'FILL' 1;">domain</span>
-          <div>
-            <div class="text-2xl font-extrabold text-on-background">89</div>
-            <div class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Blocked Domains</div>
+        <div class="bg-surface-container-lowest rounded-xl p-5 shadow-ambient border border-outline-variant/15 flex items-center gap-4 min-w-0">
+          <span class="material-symbols-outlined text-tertiary bg-tertiary/10 p-3 rounded-xl shrink-0" style="font-variation-settings:'FILL' 1;">domain</span>
+          <div class="min-w-0 overflow-hidden">
+            <div class="text-2xl font-extrabold text-on-background truncate">89</div>
+            <div class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest truncate">Domains</div>
           </div>
         </div>
-        <div class="bg-surface-container-lowest rounded-xl p-5 shadow-ambient border border-outline-variant/15 flex items-center gap-4">
-          <span class="material-symbols-outlined text-primary bg-primary/10 p-2 rounded-lg" style="font-variation-settings:'FILL' 1;">block</span>
-          <div>
-            <div class="text-2xl font-extrabold text-on-background">3,841</div>
-            <div class="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Emails Caught</div>
+        <div class="bg-surface-container-lowest rounded-xl p-5 shadow-ambient border border-outline-variant/15 flex items-center gap-4 min-w-0">
+          <span class="material-symbols-outlined text-primary bg-primary/10 p-3 rounded-xl shrink-0" style="font-variation-settings:'FILL' 1;">block</span>
+          <div class="min-w-0 overflow-hidden">
+            <div class="text-2xl font-extrabold text-on-background truncate">3,841</div>
+            <div class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest truncate">Emails</div>
           </div>
         </div>
       </section>
@@ -383,4 +532,10 @@
   </div>
 </div>
 
+<script>
+    window.addEventListener('DOMContentLoaded', async () => {
+        EmailGuard.updateConnectionStatus();
+        await loadKeywords();
+    });
+</script>
 </body></html>
