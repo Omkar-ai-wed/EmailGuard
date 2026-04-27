@@ -48,3 +48,9 @@ backend/.env
 # Node (if any frontend tooling)
 node_modules/
 .npm/
+
+deploy.md 
+
+EmailGuard_Production_Readiness_Report.md
+
+ruff_output.txt
