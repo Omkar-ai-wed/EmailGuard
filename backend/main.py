@@ -19,9 +19,33 @@ import models  # noqa: F401 — triggers all model imports
 from routers import auth, emails, classification, keywords, reputation, scanning, alerts, analytics
 from config import settings
 
+import os
+import uuid
+from starlette.middleware.base import BaseHTTPMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from fastapi import Request
+from fastapi.responses import JSONResponse
+from sqlalchemy import text
+from limiter_config import limiter
+
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
+
+class RequestIDFilter(logging.Filter):
+    """Ensures request_id is always present in the log record to avoid KeyErrors."""
+    def filter(self, record):
+        if not hasattr(record, "request_id"):
+            record.request_id = "System"
+        return True
+
+# Configure logging
+handler = logging.StreamHandler()
+handler.addFilter(RequestIDFilter())
+handler.setFormatter(logging.Formatter("%(asctime)s | %(levelname)-8s | [%(request_id)s] %(name)s — %(message)s"))
+
 logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s | %(levelname)-8s | %(name)s — %(message)s",
+    level=getattr(logging, LOG_LEVEL, logging.INFO),
+    handlers=[handler]
 )
 logger = logging.getLogger(__name__)
 
@@ -36,7 +60,7 @@ async def lifespan(app: FastAPI):
     # Pre-load and train the ML classifier so first request is fast
     from services.ml_model import get_classifier
     clf = get_classifier()
-    logger.info("ML classifier ready (vocab size: %d)", len(clf.vocab))
+    logger.info("ML classifier ready")
 
     yield  # ← app is running here
 
@@ -72,14 +96,50 @@ app = FastAPI(
     ],
 )
 
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.exception("Unhandled exception on %s %s: %s", request.method, request.url.path, exc)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "An internal server error occurred. Please try again later."},
+    )
+
+@app.exception_handler(404)
+async def not_found_handler(request: Request, exc):
+    return JSONResponse(status_code=404, content={"detail": "Resource not found."})
+
+class RequestIDMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        request_id = str(uuid.uuid4())[:8]
+        request.state.request_id = request_id
+        import logging
+        # Inject request_id into log context for this request
+        logger_extra = logging.LoggerAdapter(
+            logging.getLogger("emailguard.request"),
+            {"request_id": request_id}
+        )
+        logger_extra.info("%s %s", request.method, request.url.path)
+        response = await call_next(request)
+        response.headers["X-Request-ID"] = request_id
+        logger_extra.info("%s %s → %d", request.method, request.url.path, response.status_code)
+        return response
+
+app.add_middleware(RequestIDMiddleware)
+
 # ── CORS ──────────────────────────────────────────────────────────────────────
 # Open CORS so the local HTML dashboard files can call the API directly
+_raw_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:8000")
+_allowed_origins = [o.strip() for o in _raw_origins.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "Accept"],
 )
 
 # ── Routers ───────────────────────────────────────────────────────────────────
@@ -106,4 +166,25 @@ def root():
 
 @app.get("/health", tags=["Health"])
 def health():
-    return {"status": "healthy"}
+    """Deep health check — verifies DB connectivity."""
+    from database import SessionLocal
+    db = SessionLocal()
+    try:
+        db.execute(text("SELECT 1"))
+        db_status = "healthy"
+    except Exception as e:
+        logger.error("Health check DB failure: %s", e)
+        db_status = "unhealthy"
+    finally:
+        db.close()
+
+    overall = "healthy" if db_status == "healthy" else "degraded"
+    status_code = 200 if overall == "healthy" else 503
+    return JSONResponse(
+        status_code=status_code,
+        content={
+            "status": overall,
+            "database": db_status,
+            "version": settings.APP_VERSION,
+        },
+    )
