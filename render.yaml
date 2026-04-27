@@ -4,14 +4,19 @@ services:
     runtime: python
     rootDir: backend
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
-    plan: free
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT --workers 2 --log-level info
+    plan: starter  # NOT free — free plan sleeps and loses in-memory state
+    healthCheckPath: /health
     envVars:
       - key: DEBUG
         value: "false"
+      - key: LOG_LEVEL
+        value: "INFO"
+      - key: WEB_CONCURRENCY
+        value: "2"
       - key: DATABASE_URL
-        value: "sqlite:///./emailguard.db"
+        sync: false  # Set manually in Render dashboard
       - key: SECRET_KEY
         generateValue: true
-      - key: PYTHON_VERSION
-        value: "3.14.3"
+      - key: ALLOWED_ORIGINS
+        sync: false  # Set to your dashboard domain
