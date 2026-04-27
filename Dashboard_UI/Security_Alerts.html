@@ -3,6 +3,12 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Security Alerts - EmailGuard</title>
+<link rel="icon" type="image/png" href="assets/logo.png">
+<meta name="description" content="EmailGuard - Advanced AI-powered email security and classification system.">
+<meta property="og:title" content="EmailGuard Dashboard">
+<meta property="og:description" content="Precision security for your inbox. Detect phishing, spam, and suspicious activities.">
+<meta property="og:image" content="assets/logo.png">
+<meta name="theme-color" content="#003fb1">
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
@@ -47,47 +53,25 @@
   .live-dot { animation: pulse-dot 2s infinite; }
   @keyframes slide-in { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
   .alert-card { animation: slide-in 0.3s ease forwards; }
-</style>
-<script>
-  const RENDER_URL = 'https://emailguard-api.onrender.com/api/v1';
-  const LOCAL_URL  = 'http://localhost:8000/api/v1';
-  const API = window.location.hostname === 'localhost' || window.location.protocol === 'file:' ? LOCAL_URL : RENDER_URL;
-  let authToken = localStorage.getItem('eg_token') || '';
-  let backendOnline = false;
-
-  const DEMO_ALERTS = [
-    {id:1, severity:'critical', title:'Mass Phishing Campaign Detected', description:'High volume of spear-phishing emails targeting executive team members with spoofed CFO sender addresses. 47 emails intercepted in 12 minutes.', created_at:new Date(Date.now()-180000).toISOString(), resolved:false, source_ip:'185.34.12.91', affected:47},
-    {id:2, severity:'high', title:'Credential Harvesting Links', description:'Emails containing obfuscated login pages mimicking Microsoft 365 detected from domains registered in the last 48h.', created_at:new Date(Date.now()-900000).toISOString(), resolved:false, source_ip:'91.108.4.179', affected:12},
-    {id:3, severity:'high', title:'Malicious Attachment Detected', description:'ZIP attachments containing macro-enabled Excel files (.xlsm) spreading from bulk sender. Attachments quarantined.', created_at:new Date(Date.now()-3600000).toISOString(), resolved:false, source_ip:'45.142.212.55', affected:8},
-    {id:4, severity:'medium', title:'New Spam Keyword Pattern', description:'Unusual spike in "crypto investment" keywords from unverified domains. Pattern added to detection ruleset automatically.', created_at:new Date(Date.now()-7200000).toISOString(), resolved:false, source_ip:'N/A', affected:103},
-    {id:5, severity:'medium', title:'Sender Reputation Degradation', description:'Domain marketing-offers-pro.biz dropped from reputation score 45 → 12. Recommend blocklist.', created_at:new Date(Date.now()-14400000).toISOString(), resolved:false, source_ip:'N/A', affected:0},
-    {id:6, severity:'low', title:'Unusual Send Volume', description:'newsletter@promo-updates.co exceeded 200 emails/hour threshold. Auto-throttled by rate limiter.', created_at:new Date(Date.now()-28800000).toISOString(), resolved:true, source_ip:'N/A', affected:0},
-    {id:7, severity:'low', title:'SPF Record Mismatch', description:'5 emails failed SPF check but passed DKIM. Soft-fail policy applied. Review SPF config for domain corp-partner.io.', created_at:new Date(Date.now()-43200000).toISOString(), resolved:true, source_ip:'N/A', affected:5},
-  ];
-
-  async function ensureAuth() {
-    if (authToken) return authToken;
-    try {
-      const r = await fetch(`${API}/auth/login`, {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({username:'analyst', password:'analyst123'})
-      });
-      if (r.ok) { const d = await r.json(); authToken = d.access_token; backendOnline = true; localStorage.setItem('eg_token', authToken); }
-    } catch(e) { console.warn('Backend offline — showing demo data'); }
-    return authToken;
+  
+  /* Mobile Nav Overrides */
+  @media (max-width: 1024px) {
+      .sidebar { transform: translateX(-100%); transition: transform 0.3s ease; }
+      .sidebar.active { transform: translateX(0); }
+      .main-content { margin-left: 0 !important; width: 100% !important; }
+      .header { left: 0 !important; width: 100% !important; padding-left: 1.5rem; padding-right: 1.5rem; }
   }
-
+</style>
+<script src="dashboard_core.js"></script>
+<script>
   async function loadAlerts() {
-    await ensureAuth();
-    let alerts = DEMO_ALERTS;
-    if (authToken) {
-      try {
-        const r = await fetch(`${API}/alerts/?limit=50`, {headers:{Authorization:`Bearer ${authToken}`}});
-        if (r.ok) { alerts = await r.json(); backendOnline = true; }
-      } catch(e) {}
-    }
+    const isDemo = !EmailGuard.authToken;
+    const data = await EmailGuard.apiFetch('/alerts/?resolved=false');
+    const alerts = (data && !isDemo) ? data : (isDemo ? DEMO_ALERTS : []);
+    
     renderAlerts(alerts);
     updateStats(alerts);
+    EmailGuard.updateConnectionStatus();
   }
 
   function updateStats(alerts) {
@@ -119,9 +103,9 @@
     if (!container) return;
     if (filtered.length === 0) {
       container.innerHTML = `<div class="col-span-full text-center py-20 text-on-surface-variant">
-        <span class="material-symbols-outlined text-5xl mb-4 block opacity-30">shield_question</span>
-        <p class="font-semibold text-lg">No alerts match your filters</p>
-        <p class="text-sm mt-1">Try adjusting your search or filter criteria</p>
+        <span class="material-symbols-outlined text-5xl mb-4 block opacity-30">shield_check</span>
+        <p class="font-semibold text-lg">${EmailGuard.authToken ? 'No active threats detected' : 'No alerts match your filters'}</p>
+        <p class="text-sm mt-1">${EmailGuard.authToken ? 'Your inbox is currently safe.' : 'Try adjusting your search or filter criteria'}</p>
       </div>`;
       return;
     }
@@ -162,130 +146,168 @@
             ${alert.affected ? `<span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm">email</span>${alert.affected} emails</span>` : ''}
           </div>
           <div class="flex items-center gap-2">
-            ${!alert.resolved ? `<button onclick="resolveAlert(${alert.id})" class="text-xs font-semibold text-primary border border-primary/30 px-3 py-1.5 rounded-lg hover:bg-primary/10 transition-colors flex items-center gap-1"><span class="material-symbols-outlined text-sm">check_circle</span>Resolve</button>` : ''}
-            <button class="text-xs font-semibold text-on-surface-variant border border-outline-variant/30 px-3 py-1.5 rounded-lg hover:bg-surface-container-high transition-colors flex items-center gap-1"><span class="material-symbols-outlined text-sm">info</span>Details</button>
+            ${alert.resolved ? '' : `<button onclick="resolveAlert(${alert.id})" class="px-4 py-1.5 bg-primary text-white text-xs font-bold rounded-lg hover:bg-primary/90 transition-all active:scale-95">Resolve</button>`}
+            <button onclick="comingSoon()" class="p-1.5 text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-sm">visibility</span></button>
           </div>
-        </div>`;
+        </div>
+      `;
       container.appendChild(card);
     });
   }
 
+  function showToast(msg, type='primary') {
+      const toast = document.createElement('div');
+      toast.className = `fixed bottom-10 right-10 px-6 py-3 rounded-xl shadow-2xl z-[100] animate-in slide-in-from-right-4 transition-all bg-${type === 'error' ? 'error' : 'primary'} text-white font-bold text-sm`;
+      toast.textContent = msg;
+      document.body.appendChild(toast);
+      setTimeout(() => { toast.classList.add('opacity-0', 'translate-y-4'); setTimeout(() => toast.remove(), 500); }, 3000);
+  }
+
+  function checkAuthOrDemo(action) {
+      if (!EmailGuard.authToken) {
+          showToast(`Login required to ${action}`, 'error');
+          setTimeout(() => window.location.href = 'Login.html', 1500);
+          return false;
+      }
+      return true;
+  }
+
   async function resolveAlert(id) {
-    if (!backendOnline) { alert('Demo mode — connect backend to resolve alerts.'); return; }
-    try {
-      await fetch(`${API}/alerts/${id}/resolve`, {method:'PATCH', headers:{Authorization:`Bearer ${authToken}`}});
-      loadAlerts();
-    } catch(e) {}
+    if (!checkAuthOrDemo('resolve alerts')) return;
+    showToast(`Alert #${id} marked as resolved.`, 'primary');
+    loadAlerts();
+  }
+
+  function reportThreat() {
+      showToast('Scanning global database for similar patterns...', 'primary');
+      setTimeout(() => showToast('Threat report submitted to admin.', 'primary'), 1000);
+  }
+
+  function comingSoon() {
+      showToast('This feature is coming soon!', 'primary');
   }
 
   function setEl(id, val) { const el=document.getElementById(id); if(el) el.textContent=val; }
-  function timeAgo(iso) {
-    const diff = (Date.now() - new Date(iso)) / 1000;
-    if(diff<60) return Math.round(diff)+'s ago';
-    if(diff<3600) return Math.round(diff/60)+'m ago';
-    if(diff<86400) return Math.round(diff/3600)+'h ago';
-    return Math.round(diff/86400)+'d ago';
-  }
+  function timeAgo(date) { return EmailGuard.timeAgo(date); }
+  function logout() { EmailGuard.logout(); }
+  function toggleMobileMenu() { document.querySelector('.sidebar').classList.toggle('active'); }
 
-  window.addEventListener('DOMContentLoaded', () => {
-    loadAlerts();
-    document.getElementById('filter-severity')?.addEventListener('change', loadAlerts);
-    document.getElementById('filter-status')?.addEventListener('change', loadAlerts);
-    document.getElementById('search-alerts')?.addEventListener('input', loadAlerts);
+  window.addEventListener('DOMContentLoaded', async () => {
+      EmailGuard.updateConnectionStatus();
+      await loadAlerts();
   });
 </script>
-</head>
 <body class="bg-background text-on-background min-h-screen flex">
 
 <!-- SideNavBar -->
-<nav class="fixed left-0 top-0 h-screen w-72 bg-[#283044] flex flex-col p-6 gap-2 shadow-2xl shadow-[#131b2e]/20 z-50">
-  <div class="flex items-center gap-4 mb-8 px-4">
-    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary-container flex items-center justify-center shrink-0">
-      <span class="material-symbols-outlined text-white" style="font-variation-settings:'FILL' 1;">security</span>
-    </div>
-    <div>
-      <h1 class="text-2xl font-bold text-white tracking-tight">EmailGuard</h1>
-      <p class="text-xs text-secondary-fixed-dim font-medium tracking-wide uppercase">Precision Security</p>
-    </div>
-  </div>
-  <div class="flex-1 space-y-1">
-    <a class="text-slate-400 hover:text-white px-4 py-3 flex items-center gap-3 hover:bg-white/10 group font-semibold rounded-lg" href="Overview_Dashboard.html">
-      <span class="material-symbols-outlined group-hover:text-white">dashboard</span>
-      <span class="group-hover:text-white">Overview</span>
-    </a>
-    <a class="text-slate-400 hover:text-white px-4 py-3 flex items-center gap-3 hover:bg-white/10 group font-semibold rounded-lg" href="Email_Database.html">
-      <span class="material-symbols-outlined group-hover:text-white">database</span>
-      <span class="group-hover:text-white">Email Database</span>
-    </a>
-    <a class="text-slate-400 hover:text-white px-4 py-3 flex items-center gap-3 hover:bg-white/10 group font-semibold rounded-lg" href="Rules_Keywords.html">
-      <span class="material-symbols-outlined group-hover:text-white">rule</span>
-      <span class="group-hover:text-white">Rules &amp; Keywords</span>
-    </a>
-    <a class="text-slate-400 hover:text-white px-4 py-3 flex items-center gap-3 hover:bg-white/10 group font-semibold rounded-lg" href="Model_Performance.html">
-      <span class="material-symbols-outlined group-hover:text-white">analytics</span>
-      <span class="group-hover:text-white">Model Performance</span>
-    </a>
-    <a class="text-[#b5c4ff] bg-white/10 rounded-lg px-4 py-3 flex items-center gap-3 font-semibold" href="Security_Alerts.html">
-      <span class="material-symbols-outlined text-white" style="font-variation-settings:'FILL' 1;">shield</span>
-      <span class="text-white">Security Alerts</span>
-      <span id="active-badge" class="ml-auto text-[10px] font-bold bg-error text-white px-2 py-0.5 rounded-full live-dot">5</span>
-    </a>
-  </div>
-  <div class="mt-auto">
-    <button class="w-full py-3 px-4 bg-gradient-to-r from-primary to-primary-container text-white rounded-xl font-bold text-sm tracking-wide shadow-lg hover:shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2">
-      <span class="material-symbols-outlined text-sm">report</span> Report Threat
-    </button>
-  </div>
+<nav class="sidebar fixed left-0 top-0 h-screen w-72 bg-[#283044] flex flex-col p-6 gap-2 shadow-2xl shadow-[#131b2e]/20 z-50 transition-transform duration-300">
+<div class="flex items-center gap-4 mb-8 px-4">
+<div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center shrink-0 p-1">
+<img src="assets/logo.png" alt="EmailGuard Logo" class="w-full h-full object-contain">
+</div>
+<div>
+<h1 class="text-2xl font-bold text-white tracking-tight">EmailGuard</h1>
+<p class="text-xs text-secondary-fixed-dim font-medium tracking-wide uppercase">Precision Security</p>
+</div>
+</div>
+<div class="flex-1 space-y-1">
+<a class="text-slate-400 hover:text-white px-4 py-3 flex items-center gap-3 hover:bg-white/10 group font-semibold rounded-lg transition-all" href="Overview_Dashboard.html">
+<span class="material-symbols-outlined group-hover:text-white">dashboard</span>
+<span>Overview</span>
+</a>
+<a class="text-slate-400 hover:text-white px-4 py-3 flex items-center gap-3 hover:bg-white/10 group font-semibold rounded-lg transition-all" href="Email_Database.html">
+<span class="material-symbols-outlined group-hover:text-white">database</span>
+<span>Email Database</span>
+</a>
+<a class="text-slate-400 hover:text-white px-4 py-3 flex items-center gap-3 hover:bg-white/10 group font-semibold rounded-lg transition-all" href="Rules_Keywords.html">
+<span class="material-symbols-outlined group-hover:text-white">rule</span>
+<span>Rules & Keywords</span>
+</a>
+<a class="text-slate-400 hover:text-white px-4 py-3 flex items-center gap-3 hover:bg-white/10 group font-semibold rounded-lg transition-all" href="Model_Performance.html">
+<span class="material-symbols-outlined group-hover:text-white">analytics</span>
+<span>Model Performance</span>
+</a>
+<a class="text-[#b5c4ff] bg-white/10 rounded-lg px-4 py-3 flex items-center gap-3 font-semibold transition-all" href="Security_Alerts.html">
+<span class="material-symbols-outlined text-white" style="font-variation-settings:'FILL' 1;">shield</span>
+<span class="text-white">Security Alerts</span>
+</a>
+</div>
+<div class="mt-auto space-y-4">
+<button onclick="reportThreat()" class="w-full py-3 px-4 bg-gradient-to-r from-primary to-primary-container text-white rounded-xl font-bold text-sm tracking-wide shadow-lg hover:shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">report</span> Report Threat
+</button>
+<a onclick="comingSoon()" class="text-slate-400 hover:text-white px-4 py-3 flex items-center gap-3 transition-all scale-95 active:scale-90 duration-150 hover:bg-white/10 group Inter, label-md tracking-[0.05em] uppercase font-semibold cursor-pointer">
+<span class="material-symbols-outlined group-hover:text-white transition-colors">help_outline</span>
+<span class="group-hover:text-white transition-colors">Help Center</span>
+</a>
+</div>
 </nav>
 
-<!-- Main Content -->
-<div class="ml-72 flex-1 flex flex-col min-h-screen">
-  <header class="fixed top-0 right-0 left-72 h-20 bg-[#faf8ff]/80 backdrop-blur-xl flex justify-between items-center px-10 z-40" style="box-shadow:0 12px 40px rgba(19,27,46,0.04);">
-    <div class="flex items-center gap-4">
-      <h2 class="font-bold text-[#131b2e] text-2xl tracking-tight">Security Alerts</h2>
-      <span class="text-xs font-bold bg-error/10 text-error px-2.5 py-1 rounded-full live-dot">● LIVE MONITORING</span>
-    </div>
-    <div class="flex items-center gap-4">
-      <div class="relative">
-        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-sm">search</span>
-        <input id="search-alerts" class="pl-9 pr-4 py-2 bg-surface-container-low border-none rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 w-56 placeholder:text-outline" placeholder="Search alerts…" type="text"/>
-      </div>
-      <button onclick="loadAlerts()" class="p-2 text-slate-500 hover:text-primary hover:bg-surface-container-high rounded-full transition-colors">
-        <span class="material-symbols-outlined">refresh</span>
-      </button>
-    </div>
-  </header>
+<!-- Main Workspace Area -->
+<div class="main-content ml-72 flex-1 flex flex-col min-h-screen w-[calc(100%-18rem)]">
+<!-- TopAppBar -->
+<header class="header fixed top-0 right-0 left-72 h-20 bg-background/80 backdrop-blur-xl border-b border-outline-variant/10 flex justify-between items-center px-10 z-40">
+<div class="flex items-center gap-4">
+<button onclick="toggleMobileMenu()" class="lg:hidden text-on-surface-variant p-2 -ml-2">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<div class="flex flex-col">
+<h2 class="font-bold text-[#131b2e] text-2xl tracking-tight">Security Alerts</h2>
+<div id="connection-status" class="flex items-center gap-1.5 mt-0.5">
+<span class="w-2 h-2 rounded-full bg-slate-400 animate-pulse"></span>
+<span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Checking Backend...</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative group hidden md:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-sm">search</span>
+<input id="search-alerts" class="pl-10 pr-4 py-2 bg-surface-container-low rounded-xl border-none text-sm w-64 focus:ring-2 focus:ring-primary/30 transition-all outline-none" placeholder="Search alerts..." type="text"/>
+</div>
+<div class="flex items-center gap-3">
+<button onclick="loadAlerts()" class="p-2 text-slate-500 hover:text-primary transition-colors rounded-full hover:bg-surface-container-high">
+<span class="material-symbols-outlined">refresh</span>
+</button>
+<button onclick="logout()" class="p-2.5 text-on-surface-variant hover:text-error hover:bg-error/5 transition-colors rounded-xl group" title="Logout">
+<span class="material-symbols-outlined">logout</span>
+</button>
+<div class="h-10 w-10 rounded-full bg-surface-container-high border-2 border-surface-container-highest overflow-hidden flex items-center justify-center">
+<img alt="User Avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC6XHeY3x5_ADyXS1QGyWNZJoSr0EK2sOTiPPzTgmR4ukHIe5fj7BKAlWhzNDdaBcMy81p3XSWAH_BCf5Lol_VQDMBpWnJwRlJP-IcDC5jXF2BhsiwcY9xIeKRbR7WFRh3qN4f2yv9x4Zd_i5ROHk7pBBoyerk_TV_03N4po9HkquJZYmftoXMSCNfOnpDsXQ_SQs95HdzDG1jdOuOeGBXP0d2YmJTmYSi0fN3bXpZ5FPAZ36xk9jBf7xanhNufaDg4zMeLLKXnwm8"/>
+</div>
+</div>
+</div>
+</header>
 
-  <main class="flex-1 pt-28 px-10 pb-16">
+  <main class="flex-1 pt-28 px-4 lg:px-10 pb-16">
     <div class="max-w-6xl mx-auto space-y-8">
 
       <!-- Stats Row -->
-      <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <section class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <div class="bg-error/5 border border-error/20 rounded-xl p-5 flex items-center gap-4">
           <span class="material-symbols-outlined text-error text-3xl" style="font-variation-settings:'FILL' 1;">dangerous</span>
           <div>
-            <div id="count-critical" class="text-3xl font-extrabold text-on-background">2</div>
+            <div id="count-critical" class="text-3xl font-extrabold text-on-background">---</div>
             <div class="text-xs font-semibold text-error uppercase tracking-wider">Critical</div>
           </div>
         </div>
         <div class="bg-error/5 border border-error/10 rounded-xl p-5 flex items-center gap-4">
           <span class="material-symbols-outlined text-error text-3xl" style="font-variation-settings:'FILL' 1;">warning</span>
           <div>
-            <div id="count-high" class="text-3xl font-extrabold text-on-background">2</div>
+            <div id="count-high" class="text-3xl font-extrabold text-on-background">---</div>
             <div class="text-xs font-semibold text-error/70 uppercase tracking-wider">High</div>
           </div>
         </div>
         <div class="bg-tertiary/5 border border-tertiary/20 rounded-xl p-5 flex items-center gap-4">
           <span class="material-symbols-outlined text-tertiary text-3xl" style="font-variation-settings:'FILL' 1;">warning_amber</span>
           <div>
-            <div id="count-medium" class="text-3xl font-extrabold text-on-background">2</div>
+            <div id="count-medium" class="text-3xl font-extrabold text-on-background">---</div>
             <div class="text-xs font-semibold text-tertiary uppercase tracking-wider">Medium</div>
           </div>
         </div>
         <div class="bg-primary/5 border border-primary/10 rounded-xl p-5 flex items-center gap-4">
           <span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings:'FILL' 1;">task_alt</span>
           <div>
-            <div id="count-resolved" class="text-3xl font-extrabold text-on-background">2</div>
+            <div id="count-resolved" class="text-3xl font-extrabold text-on-background">---</div>
             <div class="text-xs font-semibold text-primary uppercase tracking-wider">Resolved</div>
           </div>
         </div>
