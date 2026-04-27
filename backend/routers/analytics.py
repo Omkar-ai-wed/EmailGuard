@@ -19,7 +19,7 @@ def dashboard_overview(
     current_user: User = Depends(get_current_user),
 ):
     """Summary stats for the main dashboard: totals, accuracy, FP/FN rates."""
-    return analytics_service.get_overview_stats(db)
+    return analytics_service.get_overview_stats(db, user_id=current_user.id)
 
 
 @router.get("/trend")
@@ -29,7 +29,7 @@ def spam_trend(
     current_user: User = Depends(get_current_user),
 ):
     """Daily spam vs wanted email counts for the last N days."""
-    return analytics_service.get_spam_trend(db, days)
+    return analytics_service.get_spam_trend(db, days, user_id=current_user.id)
 
 
 @router.get("/risk-distribution")
@@ -38,7 +38,7 @@ def risk_distribution(
     current_user: User = Depends(get_current_user),
 ):
     """Count of emails in each risk bucket: low / medium / high / critical."""
-    return analytics_service.get_risk_distribution(db)
+    return analytics_service.get_risk_distribution(db, user_id=current_user.id)
 
 
 @router.get("/top-keywords")
