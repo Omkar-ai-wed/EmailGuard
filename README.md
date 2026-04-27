@@ -9,7 +9,9 @@
   <img src="https://skillicons.dev/icons?i=python,fastapi,js,tailwind,postgres,supabase,sklearn,vercel,render" />
 </p>
 
-**EmailGuard** is a high-performance, enterprise-grade security gateway designed to solve the "Modern Phishing Problem." It replaces traditional, easily-bypassed static filters with a **consensus-based Hybrid Engine** that combines semantic ML classification with real-time heuristic rule matching.
+## 🚀 Live 
+*   **Live Application**: [email-guard-ecru.vercel.app](https://email-guard-ecru.vercel.app/)
+*   **Interactive API Docs**: [emailguard-17.onrender.com/docs](https://emailguard-17.onrender.com/docs)
 
 ---
 
@@ -223,8 +225,8 @@ EmailGuard/
 
 | Layer | Platform | Service Type | Status |
 | :--- | :--- | :--- | :--- |
-| **Frontend** | ![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white) | Static Edge Hosting | ![Online](https://img.shields.io/badge/LIVE-success?style=flat-square) |
-| **Backend API** | ![Render](https://img.shields.io/badge/Render-46E3B7?style=for-the-badge&logo=render&logoColor=white) | Managed Python Service | ![Online](https://img.shields.io/badge/LIVE-success?style=flat-square) |
+| **Frontend** | ![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white) | Static Edge Hosting | [![Online](https://img.shields.io/badge/LIVE-success?style=flat-square)](https://email-guard-ecru.vercel.app/) |
+| **Backend API** | ![Render](https://img.shields.io/badge/Render-46E3B7?style=for-the-badge&logo=render&logoColor=white) | Managed Python Service | [![Online](https://img.shields.io/badge/LIVE-success?style=flat-square)](https://emailguard-17.onrender.com/docs) |
 | **Database** | ![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white) | Managed PostgreSQL | ![Online](https://img.shields.io/badge/LIVE-success?style=flat-square) |
 
 ```mermaid
